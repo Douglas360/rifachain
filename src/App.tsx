@@ -1,26 +1,31 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import Contact from "./components/Contact";
+import FAQ from "./components/FAQ";
+import Features from "./components/Features";
+import Footer from "./components/Footer";
+import Header from "./components/Header";
+import Hero from "./components/Hero";
+import ScrollToTopButton from "./components/ScrollToTopButton";
+import Steps from "./components/Steps";
+import Support from "./components/Support";
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="min-h-screen">
+      <div className="gradient-bg-hero min-h-screen">
+        <Header />
+        <Hero />
+      </div>
+      <Steps />
+      <Features />
+      <Support />
+      <FAQ />
+      <Contact />
+      <Footer />
+
+      {/*---SCROLL-TO-TOP-BUTTON--- */}
+      <ScrollToTopButton />
     </div>
   );
-}
+};
 
 export default App;
