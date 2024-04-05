@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Contact from "./components/Contact";
 import FAQ from "./components/FAQ";
 import Features from "./components/Features";
@@ -8,7 +9,18 @@ import ScrollToTopButton from "./components/ScrollToTopButton";
 import Steps from "./components/Steps";
 import Support from "./components/Support";
 
+import { isWalletConnected } from "./Blockchain.services";
+import Alert from "./components/Alert";
+
 const App = () => {
+  useEffect(() => {
+    const fetchData = async () => {
+      await isWalletConnected();
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <div className="min-h-screen">
       <div className="gradient-bg-hero min-h-screen">
@@ -24,6 +36,7 @@ const App = () => {
 
       {/*---SCROLL-TO-TOP-BUTTON--- */}
       <ScrollToTopButton />
+      <Alert />
     </div>
   );
 };

@@ -1,7 +1,12 @@
 import React from "react";
 import logo from "../assets/logo.png";
+import { truncateAddress, useGlobalState } from "../store";
+import { connectWallet } from "../Blockchain.services";
+import { MATIC_CHAIN_ID_TESTNET } from "../constants";
 
 const Header = () => {
+  const [connectedAccount] = useGlobalState("connectedAccount");
+
   function scrollToSection(sectionId: string): void {
     const section = document.getElementById(sectionId);
     if (section) {
@@ -43,9 +48,25 @@ const Header = () => {
         </ul>
       </div>
 
-      <button className="shadow-xl shadow-black text-white bg-[#e32970] hover:bg-[#bd255f] md: p-2 rounded-full cursor-pointer">
-        Conectar Carteira
-      </button>
+      {connectedAccount ? (
+        <button className="flex items-center shadow-xl shadow-black text-white bg-[#e32970] hover:bg-[#bd255f] text-xl md:text-2xl md:p-2 rounded-full cursor-pointer">
+          {localStorage.getItem("connectedChain") === MATIC_CHAIN_ID_TESTNET ? (
+            <img
+              className="w-8 h-8 rounded-full mr-2"
+              src="https://cryptologos.cc/logos/polygon-matic-logo.png"
+              alt="Polygon Matic"
+            />
+          ) : null}
+          <span>{truncateAddress(connectedAccount, 4, 4, 11)}</span>
+        </button>
+      ) : (
+        <button
+          className="shadow-xl shadow-black text-white bg-[#e32970] hover:bg-[#bd255f] md: p-2 rounded-full cursor-pointer"
+          onClick={connectWallet}
+        >
+          Conectar Carteira
+        </button>
+      )}
     </nav>
   );
 };
