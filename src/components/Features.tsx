@@ -1,4 +1,5 @@
 import React from "react";
+import { FaArrowRight } from "react-icons/fa";
 
 const Features = () => {
   return (
@@ -63,16 +64,17 @@ const Features = () => {
         </div>
 
         {/*---FEATURES-TEXT- */}
-        <div className="ml-4">
-          <p className="text-yellow-500 font-bold text-2xl">
+        <div className="grid grid-cols-1 md:ml-4 mt-4">
+          <p className="text-yellow-500 font-bold text-1xl md:text-2xl">
             Uma exaustiva lista de
           </p>
-          <h1 className="text-white font-bold text-4xl">
+          <h1 className="text-white font-bold text-3xl md:text-4xl">
             NOSSAS FUNCIONALIDADES
           </h1>
           <div className="mt-6 transform ">
             <span className="text-white cursor-pointer">
-              Mostre todas as funcionalidades{" "}
+              Mostre todas as funcionalidades
+              {<FaArrowRight className="inline-block ml-1" />}
             </span>
           </div>
         </div>

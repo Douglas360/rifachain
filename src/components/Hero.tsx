@@ -4,14 +4,15 @@ const Hero = () => {
   return (
     <div
       className="flex flex-col md:flex-row w-4/5 justify-between 
-items-center mx-auto py-10 mt-3"
+items-center mx-auto py-10 md:mt-10"
     >
       <div className="md:w-3/6 w-full">
         <div>
           <h1 className="text-white text-5xl font-bold">
             Crie sua
             <span className="text-gradient"> Rifa</span> <br />
-            Online na Blockchain, <br />
+            Online na Blockchain
+            <br />
           </h1>
           <p className="text-gray-3 font-semibold text-sm mt-3">
             A plataforma completa para você criar e gerenciar suas campanhas com
