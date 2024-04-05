@@ -50,6 +50,17 @@ body {
     radial-gradient(at 50% 50%, rgb(207, 34, 91) 0, transparent 50%);
 }
 
+.bg-sidebar {
+  background-color: rgb(207, 34, 141);
+  background-image: linear-gradient(
+      to bottom right,
+      hsl(302deg 25% 18%),
+      transparent
+    ),
+    linear-gradient(to top left, rgb(59, 4, 77), transparent),
+    radial-gradient(at 50% 50%, rgb(207, 34, 141) 0, transparent);
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

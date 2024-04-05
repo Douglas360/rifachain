@@ -1,20 +1,15 @@
 import React, { useState } from "react";
-import logo from "../assets/logo.png";
-import { truncateAddress, useGlobalState } from "../store";
-import { connectWallet } from "../Blockchain.services";
-import { MATIC_CHAIN_ID_TESTNET } from "../constants";
+import logo from "../../assets/logo.png";
+import { truncateAddress, useGlobalState } from "../../store";
+import { connectWallet } from "../../Blockchain.services";
+import { MATIC_CHAIN_ID_TESTNET } from "../../constants";
+import { useNavigate } from "react-router-dom";
 
-const Header = () => {
+const HeaderAdmin = () => {
   const [connectedAccount] = useGlobalState("connectedAccount");
-
-  function scrollToSection(sectionId: string): void {
-    const section = document.getElementById(sectionId);
-    if (section) {
-      window.scrollTo({
-        behavior: "smooth",
-        top: section.offsetTop, // ajuste opcional para o deslocamento
-      });
-    }
+  const navigate = useNavigate();
+  function navigateTo(sectionId: string): void {
+    navigate(`/#${sectionId}`);
   }
 
   return (
@@ -29,19 +24,16 @@ const Header = () => {
         >
           <li
             className="mx-4 cursor-pointer"
-            onClick={() => scrollToSection("features")}
+            onClick={() => navigateTo("features")}
           >
             Funcionalidades
           </li>
-          <li
-            className="mx-4 cursor-pointer"
-            onClick={() => scrollToSection("faq")}
-          >
+          <li className="mx-4 cursor-pointer" onClick={() => navigateTo("faq")}>
             Perguntas frequentes
           </li>
           <li
             className="mx-4 cursor-pointer"
-            onClick={() => scrollToSection("contact")}
+            onClick={() => navigateTo("contact")}
           >
             Contato
           </li>
@@ -73,4 +65,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default HeaderAdmin;

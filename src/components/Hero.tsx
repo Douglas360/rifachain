@@ -1,6 +1,9 @@
 import React from "react";
+import { connectWallet } from "../Blockchain.services";
+import { useGlobalState } from "../store";
 
 const Hero = () => {
+  const [connectedAccount] = useGlobalState("connectedAccount");
   return (
     <div
       className="flex flex-col md:flex-row w-4/5 justify-between 
@@ -25,7 +28,11 @@ items-center mx-auto py-10 md:mt-10"
             className="shadow-xl shadow-black text-white
             bg-[#e32970] hover:bg-[#bd255f]
             rounded-full cursor-pointer p-2"
-            //onClick={onCreatedNFT}
+            onClick={
+              connectedAccount
+                ? () => (window.location.href = "/dashboard")
+                : connectWallet
+            }
           >
             Quero criar agora mesmo
           </button>
