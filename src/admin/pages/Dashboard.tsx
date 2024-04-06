@@ -85,13 +85,15 @@ const noRuffles = () => {
       <p className="text-center text-slate-700 text-xl">
         Nenhuma rifa encontrada
       </p>
-      <Button
-        text="Criar Rifa"
-        icon={<FaTicketAlt />}
-        onClick={() => {}}
-        className="bg-primary hover:bg-[#bd255f] shadow-xl shadow-black  text-white py-2 px-4 rounded-full flex items-center justify-center mt-4 w-1/2 mx-auto"
-        disabled={false}
-      />
+      <a href="/dashboard/minhas-rifas">
+        <Button
+          text="Criar Rifa"
+          icon={<FaTicketAlt />}
+          onClick={() => {}}
+          className="bg-primary hover:bg-[#bd255f] shadow-xl shadow-black  text-white py-2 px-4 rounded-full flex items-center justify-center mt-4 w-1/2 mx-auto"
+          disabled={false}
+        />
+      </a>
     </div>
   );
 };

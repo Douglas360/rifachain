@@ -1,12 +1,14 @@
-//import Web3 from "web3";
+import Web3 from "web3";
+import abi from "./abis/Rifa.json";
 
 import {
   MATIC_CHAIN_ID_TESTNET,
   MATIC_CHAIN_NAME_TESTNET,
   MATIC_RPC_URL_TESTNET,
   MATIC_BLOCK_EXPLORER_URL_TESTNET,
+  CONTRACT_ADDRESS,
 } from "./constants";
-import { setGlobalState, setAlert } from "./store";
+import { setGlobalState, setAlert, getGlobalState } from "./store";
 
 declare global {
   interface Window {
@@ -84,8 +86,45 @@ const isWalletConnected = async () => {
   }
 };
 
+const getContract = async () => {
+  const web3 = new Web3(ethereum);
+  const networkData = CONTRACT_ADDRESS;
+
+  if (networkData) {
+    const contract = new web3.eth.Contract(abi.abi, networkData);
+    return contract;
+  } else {
+    return null;
+  }
+};
+const createRuffle = async (
+  totalReward: string,
+  ticketPrice: string,
+  totalTicket: number
+) => {
+  try {
+    ticketPrice = Web3.utils.toWei(ticketPrice, "ether");
+    totalReward = Web3.utils.toWei(totalReward, "ether");
+
+    const contract = await getContract();
+    if (!contract) return reportError("Contrato não encontrado.");
+    const account = getGlobalState("connectedAccount");
+
+    await contract.methods
+      .criarRifa(totalReward, ticketPrice, totalTicket)
+      .send({ from: account });
+  } catch (error: any) {
+    reportError(error);
+  }
+};
+
 const reportError = (error: string) => {
   setAlert(JSON.stringify(error), "red");
 };
 
-export { initializeConnectedAccount, connectWallet, isWalletConnected };
+export {
+  initializeConnectedAccount,
+  connectWallet,
+  isWalletConnected,
+  createRuffle,
+};
