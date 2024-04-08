@@ -9,6 +9,7 @@ import {
   CONTRACT_ADDRESS,
 } from "./constants";
 import { setGlobalState, setAlert, getGlobalState } from "./store";
+import { Navigate } from "react-router-dom";
 
 declare global {
   interface Window {
@@ -31,7 +32,7 @@ const connectWallet = async () => {
     const accounts = await ethereum.request({ method: "eth_requestAccounts" });
     setGlobalState("connectedAccount", accounts[0].toLowerCase());
 
-    if (ethereum.chainId !== MATIC_CHAIN_ID_TESTNET) {
+    /*if (ethereum.chainId !== MATIC_CHAIN_ID_TESTNET) {
       //Se a rede não for a esperada, solicita a troca
       await ethereum.request({
         method: "wallet_addEthereumChain",
@@ -49,11 +50,12 @@ const connectWallet = async () => {
           },
         ],
       });
-    }
+    }*/
 
     setGlobalState("connectedChain", ethereum.chainId);
     localStorage.setItem("connectedAccount", accounts[0].toLowerCase());
     localStorage.setItem("connectedChain", ethereum.chainId);
+    <Navigate to="/dashboard" />;
   } catch (error: any) {
     console.log(error);
   }
@@ -110,11 +112,28 @@ const createRuffle = async (
     if (!contract) return reportError("Contrato não encontrado.");
     const account = getGlobalState("connectedAccount");
 
-    await contract.methods
+    return await contract.methods
       .criarRifa(totalReward, ticketPrice, totalTicket)
       .send({ from: account });
   } catch (error: any) {
-    reportError(error);
+    console.log(error);
+    reportError("Erro ao criar rifa.");
+  }
+};
+
+const getAllRuffles = async () => {
+  try {
+    const contract = await getContract();
+    if (!contract) return reportError("Contrato não encontrado.");
+    const account = getGlobalState("connectedAccount");
+    //setAlert("Carregando rifas...", "green");
+    const ruffle = await contract.methods.listarRifas(account).call();
+    console.log(ruffle);
+
+    return ruffle;
+  } catch (error: any) {
+    console.log(error);
+    reportError("Erro ao listar rifas.");
   }
 };
 
@@ -127,4 +146,5 @@ export {
   connectWallet,
   isWalletConnected,
   createRuffle,
+  getAllRuffles,
 };

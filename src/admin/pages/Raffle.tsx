@@ -6,17 +6,22 @@ import { FaTicketAlt } from "react-icons/fa";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import { createRuffle } from "../../Blockchain.services";
-import { setAlert } from "../../store";
+import { setAlert, setGlobalState } from "../../store";
 
 const Ruffle: React.FC = () => {
   const [totalReward, setTotalReward] = useState("2");
   const [ticketPrice, setTicketPrice] = useState("1");
   const [totalTicket, setTotalTicket] = useState(100);
 
-  const handleCreateRuffle = async () => {
+  const handleCreateRuffle = async (e: { preventDefault: () => void }) => {
+    e.preventDefault();
     try {
-      await createRuffle(totalReward, ticketPrice, totalTicket);
-    } catch (error) {
+      setGlobalState("loading", { show: true, msg: "Criando sua rifa..." });
+      const ruffle = await createRuffle(totalReward, ticketPrice, totalTicket);
+      if (ruffle) {
+        setAlert("Rifa criada com sucesso!", "green");
+      }
+    } catch (error: any) {
       console.log("ERRO NO MINT: " + error);
       setAlert("Minting failed...", "red");
     }
@@ -33,7 +38,7 @@ const Ruffle: React.FC = () => {
 
         {/*--FORM */}
         <div className="mt-7">
-          <form>
+          <form onSubmit={handleCreateRuffle}>
             <div className="flex flex-col">
               <Input
                 label="Nome da rifa"
@@ -103,7 +108,7 @@ const Ruffle: React.FC = () => {
                 type="submit"
                 text="Criar Rifa"
                 icon={<FaTicketAlt />}
-                onClick={handleCreateRuffle}
+                onClick={() => {}}
                 className="bg-primary hover:bg-[#bd255f] shadow-xl shadow-black  text-white py-2 px-4 rounded-full flex items-center justify-center mt-4 w-1/2 mx-auto"
                 disabled={false}
               />

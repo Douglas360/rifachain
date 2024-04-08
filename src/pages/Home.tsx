@@ -7,7 +7,7 @@ import Hero from "../components/Hero";
 import ScrollToTopButton from "../components/ScrollToTopButton";
 import Steps from "../components/Steps";
 import Support from "../components/Support";
-import Alert from "../components/Alert";
+import Alert from "../admin/components/Alert";
 
 const Home = () => {
   return (

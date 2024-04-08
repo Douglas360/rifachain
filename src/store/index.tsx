@@ -34,10 +34,16 @@ const truncateAddress = (
   return address;
 };
 
+const setLoadingMsg = (msg: string) => {
+  const loading = getGlobalState("loading");
+  setGlobalState("loading", { ...loading, msg });
+};
+
 export {
   setGlobalState,
   useGlobalState,
   getGlobalState,
   truncateAddress,
   setAlert,
+  setLoadingMsg,
 };

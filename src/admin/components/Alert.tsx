@@ -1,4 +1,4 @@
-import { useGlobalState } from "../store";
+import { useGlobalState } from "../../store";
 import { FaRegTimesCircle } from "react-icons/fa";
 import { BsCheck2Circle } from "react-icons/bs";
 import { ReactElement } from "react";

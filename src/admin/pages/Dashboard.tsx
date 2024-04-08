@@ -1,31 +1,41 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../layout";
 import { FaTicketAlt } from "react-icons/fa";
 import { FaRegSadCry } from "react-icons/fa";
 import Button from "../components/Button";
+import { getAllRuffles } from "../../Blockchain.services";
+import { getGlobalState } from "../../store";
+import NoRaffle from "../components/NoRaffle";
+import CardRaffle from "../components/CardRaffle";
+import { Raffle } from "../../types/Raffle";
+import { listOfRaffle } from "../../constants";
 
 const Dashboard: React.FC = () => {
-  const rifas = [
-    {
-      id: 1,
-      title: "Rifa do Iphone 12",
-      status: "Em andamento",
-      totalTickets: 100,
-      ticketsSold: 50,
-      ticketPrice: 10,
-      drawDate: "2021-10-10",
-    },
-    {
-      id: 2,
-      title: "Rifa do Iphone 12",
-      status: "Finalizada",
-      totalTickets: 100,
-      ticketsSold: 100,
-      ticketPrice: 10,
-      drawDate: "2021-10-10",
-    },
-  ];
+  const [raffleStatusFilter, setRaffleStatusFilter] = useState(1);
+  const [raffles, setRaffles] = useState<Raffle[]>([]);
+
+  useEffect(() => {
+    const account = getGlobalState("connectedAccount");
+    const fetchData = async () => {
+      console.log("Fetching raflles");
+      const fetchedRaffles = await getAllRuffles();
+      setRaffles(fetchedRaffles as Raffle[]);
+    };
+    if (account) {
+      //console.log("chamouuuu");
+      fetchData();
+    }
+  }, []);
+
   const noRifas = 0;
+
+  const filteredList = listOfRaffle.filter((raffle) =>
+    raffleStatusFilter === 1
+      ? !raffle.isFinished
+      : raffleStatusFilter === 2
+      ? raffle.isFinished
+      : true
+  );
   return (
     <Layout>
       <div className="flex flex-col mt-4 md:mt-0 md:ml-4 mx-auto w-4/5">
@@ -51,9 +61,11 @@ const Dashboard: React.FC = () => {
             <select
               className="appearance-none w-full border border-black bg-white px-4 py-2 pr-8 rounded-lg shadow-sm leading-tight focus:outline-none focus:shadow-outline"
               name="status"
+              value={raffleStatusFilter}
+              onChange={(e) => setRaffleStatusFilter(Number(e.target.value))}
             >
-              <option value="1">Em andamento</option>
-              <option value="2">Finalizadas</option>
+              <option value={1}>Em andamento</option>
+              <option value={2}>Finalizadas</option>
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
               <svg
@@ -71,30 +83,14 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/*--RIFAS */}
-          {noRifas === 0 ? noRuffles() : null}
+          {noRifas != 0 ? (
+            <NoRaffle onClick={() => {}} />
+          ) : (
+            <CardRaffle raffles={filteredList} />
+          )}
         </div>
       </div>
     </Layout>
-  );
-};
-
-const noRuffles = () => {
-  return (
-    <div className="mt-4 w-full border border-slate-300 rounded-md p-2">
-      <FaRegSadCry className="text-5xl text-slate-800 mx-auto mt-4" />
-      <p className="text-center text-slate-700 text-xl">
-        Nenhuma rifa encontrada
-      </p>
-      <a href="/dashboard/minhas-rifas">
-        <Button
-          text="Criar Rifa"
-          icon={<FaTicketAlt />}
-          onClick={() => {}}
-          className="bg-primary hover:bg-[#bd255f] shadow-xl shadow-black  text-white py-2 px-4 rounded-full flex items-center justify-center mt-4 w-1/2 mx-auto"
-          disabled={false}
-        />
-      </a>
-    </div>
   );
 };
 
