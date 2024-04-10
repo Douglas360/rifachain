@@ -71,6 +71,7 @@ const isWalletConnected = async () => {
     });
 
     ethereum.on("accountsChanged", async () => {
+      window.location.reload();
       setGlobalState("connectedAccount", accounts[0]?.toLowerCase());
       await isWalletConnected();
     });
@@ -153,7 +154,7 @@ const getAllRuffles = async () => {
         progressWidth: progressWidth,
       };
     });
-    console.log(structedRaffles);
+
     return structedRaffles;
   } catch (error: any) {
     console.log(error);

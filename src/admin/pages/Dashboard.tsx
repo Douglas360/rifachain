@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
-import Layout from "../layout";
 import { FaTicketAlt } from "react-icons/fa";
-import { FaRegSadCry } from "react-icons/fa";
+
+import Layout from "../layout";
 import Button from "../components/Button";
-import { getAllRuffles } from "../../Blockchain.services";
-import { getGlobalState } from "../../store";
 import NoRaffle from "../components/NoRaffle";
 import CardRaffle from "../components/CardRaffle";
+import { getAllRuffles } from "../../Blockchain.services";
+import { getGlobalState } from "../../store";
 import { Raffle } from "../../types/Raffle";
-import { listOfRaffle } from "../../constants";
+import ShowRaffle from "../components/ShowRaffle";
 
 const Dashboard: React.FC = () => {
   const [raffleStatusFilter, setRaffleStatusFilter] = useState(1);
@@ -82,13 +82,16 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/*--RIFAS */}
-          {noRifas != 0 ? (
+          {noRifas !== 0 ? (
             <NoRaffle onClick={() => {}} />
           ) : (
             <CardRaffle raffles={filteredList} />
           )}
         </div>
       </div>
+
+      {/*--MODAL */}
+      <ShowRaffle />
     </Layout>
   );
 };

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
+//import axios from "axios";
 
 import Layout from "../layout";
 import { FaTicketAlt } from "react-icons/fa";
@@ -10,6 +11,7 @@ import { setAlert, setGlobalState } from "../../store";
 import { Raffle } from "../../types/Raffle";
 
 const Ruffle: React.FC = () => {
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [totalReward, setTotalReward] = useState("2");
   const [ticketPrice, setTicketPrice] = useState("1");
@@ -28,6 +30,9 @@ const Ruffle: React.FC = () => {
       const ruffle = await createRaffle(data);
       if (ruffle) {
         setAlert("Rifa criada com sucesso!", "green");
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000);
       }
     } catch (error: any) {
       console.log("ERRO NO MINT: " + error);

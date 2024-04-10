@@ -5,4 +5,6 @@ export interface IGlobalState {
   connectedChain: string;
   alert: IAlertProps;
   loading: { show: boolean; msg: string };
+  showModal: string;
+  raffle: any;
 }

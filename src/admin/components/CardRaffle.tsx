@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Raffle } from "../../types/Raffle";
 import Button from "./Button";
 import { FaCheckCircle, FaClock, FaTicketAlt } from "react-icons/fa";
+import { setGlobalState } from "../../store";
 
 const CardRaffle: React.FC<{ raffles: Raffle[] }> = ({ raffles }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -13,6 +14,11 @@ const CardRaffle: React.FC<{ raffles: Raffle[] }> = ({ raffles }) => {
   const currentRaffles = raffles?.slice(indexOfFirstRecord, indexOfLastRecord);
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  const setRaflle = (raffle: Raffle) => {
+    setGlobalState("raffle", raffle);
+    setGlobalState("showModal", "scale-100");
+  };
 
   return (
     <>
@@ -92,7 +98,7 @@ const CardRaffle: React.FC<{ raffles: Raffle[] }> = ({ raffles }) => {
             <Button
               text="Ver Rifa"
               icon={<FaTicketAlt />}
-              onClick={() => {}}
+              onClick={() => setRaflle(raffle)}
               className="bg-primary hover:bg-[#bd255f] shadow-xl shadow-black text-white py-2 px-4 rounded-full flex items-center justify-center"
               disabled={false}
             />
