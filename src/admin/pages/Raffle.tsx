@@ -5,19 +5,27 @@ import Layout from "../layout";
 import { FaTicketAlt } from "react-icons/fa";
 import Input from "../components/Input";
 import Button from "../components/Button";
-import { createRuffle } from "../../Blockchain.services";
+import { createRaffle } from "../../Blockchain.services";
 import { setAlert, setGlobalState } from "../../store";
+import { Raffle } from "../../types/Raffle";
 
 const Ruffle: React.FC = () => {
+  const [title, setTitle] = useState("");
   const [totalReward, setTotalReward] = useState("2");
   const [ticketPrice, setTicketPrice] = useState("1");
   const [totalTicket, setTotalTicket] = useState(100);
 
-  const handleCreateRuffle = async (e: { preventDefault: () => void }) => {
+  const handleCreateRaffle = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     try {
       setGlobalState("loading", { show: true, msg: "Criando sua rifa..." });
-      const ruffle = await createRuffle(totalReward, ticketPrice, totalTicket);
+      const data: Raffle = {
+        title: title,
+        totalTickets: totalTicket,
+        ticketPrice: ticketPrice,
+        totalReward: totalReward,
+      };
+      const ruffle = await createRaffle(data);
       if (ruffle) {
         setAlert("Rifa criada com sucesso!", "green");
       }
@@ -38,12 +46,13 @@ const Ruffle: React.FC = () => {
 
         {/*--FORM */}
         <div className="mt-7">
-          <form onSubmit={handleCreateRuffle}>
+          <form onSubmit={handleCreateRaffle}>
             <div className="flex flex-col">
               <Input
                 label="Nome da rifa"
                 placeholder="Ex: Rifa de 2.5 Ethereum"
                 id="title"
+                onChange={(e) => setTitle(e.target.value)}
               />
             </div>
 
@@ -61,7 +70,7 @@ const Ruffle: React.FC = () => {
               <Input
                 label="Valor do bilhete"
                 placeholder="Ex: 10"
-                type="number"
+                type="string"
                 id="ticketPrice"
                 onChange={(e) => setTicketPrice(e.target.value)}
               />
@@ -76,21 +85,6 @@ const Ruffle: React.FC = () => {
                 onChange={(e) => setTotalReward(e.target.value)}
               />
             </div>
-
-            <div className="flex flex-col mt-4">
-              <Input
-                label="Descrição"
-                type="textarea"
-                placeholder="Ex: Rifa de 2.5 Ethereum"
-                id="description"
-              />
-            </div>
-
-            <span>
-              <small className="text-slate-500 text-sm">
-                A descrição é opcional
-              </small>
-            </span>
 
             {/*Ao criar essa rifa, você concorda com os termos de uso */}
             <div className="flex flex-row mt-4">

@@ -18,7 +18,7 @@ export const AppRouter: React.FC = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/dashboard/minhas-rifas" element={<Raffle />} />
+        <Route path="/dashboard/rifa" element={<Raffle />} />
         <Route path="/dashboard/meus-tickets" element={<Ticket />} />
         <Route path="/dashboard/transacoes" element={<Transaction />} />
         <Route path="/dashboard/configuracao" element={<Setting />} />

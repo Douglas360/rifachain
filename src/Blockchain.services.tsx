@@ -2,14 +2,14 @@ import Web3 from "web3";
 import abi from "./abis/Rifa.json";
 
 import {
+  CONTRACT_ADDRESS,
+  MATIC_BLOCK_EXPLORER_URL_TESTNET,
   MATIC_CHAIN_ID_TESTNET,
   MATIC_CHAIN_NAME_TESTNET,
   MATIC_RPC_URL_TESTNET,
-  MATIC_BLOCK_EXPLORER_URL_TESTNET,
-  CONTRACT_ADDRESS,
 } from "./constants";
 import { setGlobalState, setAlert, getGlobalState } from "./store";
-import { Navigate } from "react-router-dom";
+import { Raffle } from "./types/Raffle";
 
 declare global {
   interface Window {
@@ -32,7 +32,7 @@ const connectWallet = async () => {
     const accounts = await ethereum.request({ method: "eth_requestAccounts" });
     setGlobalState("connectedAccount", accounts[0].toLowerCase());
 
-    /*if (ethereum.chainId !== MATIC_CHAIN_ID_TESTNET) {
+    if (ethereum.chainId !== MATIC_CHAIN_ID_TESTNET) {
       //Se a rede não for a esperada, solicita a troca
       await ethereum.request({
         method: "wallet_addEthereumChain",
@@ -50,12 +50,11 @@ const connectWallet = async () => {
           },
         ],
       });
-    }*/
+    }
 
     setGlobalState("connectedChain", ethereum.chainId);
     localStorage.setItem("connectedAccount", accounts[0].toLowerCase());
     localStorage.setItem("connectedChain", ethereum.chainId);
-    <Navigate to="/dashboard" />;
   } catch (error: any) {
     console.log(error);
   }
@@ -99,21 +98,22 @@ const getContract = async () => {
     return null;
   }
 };
-const createRuffle = async (
-  totalReward: string,
-  ticketPrice: string,
-  totalTicket: number
-) => {
+const createRaffle = async ({
+  title,
+  ticketPrice,
+  totalReward,
+  totalTickets,
+}: Raffle) => {
   try {
     ticketPrice = Web3.utils.toWei(ticketPrice, "ether");
-    totalReward = Web3.utils.toWei(totalReward, "ether");
+    totalReward = Web3.utils.toWei(totalReward ?? "0", "ether");
 
     const contract = await getContract();
     if (!contract) return reportError("Contrato não encontrado.");
     const account = getGlobalState("connectedAccount");
 
     return await contract.methods
-      .criarRifa(totalReward, ticketPrice, totalTicket)
+      .criarRifa(title, totalReward, ticketPrice, totalTickets)
       .send({ from: account });
   } catch (error: any) {
     console.log(error);
@@ -127,10 +127,34 @@ const getAllRuffles = async () => {
     if (!contract) return reportError("Contrato não encontrado.");
     const account = getGlobalState("connectedAccount");
     //setAlert("Carregando rifas...", "green");
-    const ruffle = await contract.methods.listarRifas(account).call();
-    console.log(ruffle);
+    const raflle = await contract.methods.listarRifas(account).call();
 
-    return ruffle;
+    const structedRaffles = raflle?.map((raffle: any) => {
+      const totalTickets = Number(raffle.quantidadeBilhete);
+      const ticletsAvailable = Number(raffle.bilhetesDisponiveis);
+      const ticketsSold = totalTickets - ticletsAvailable;
+
+      const progressWidth =
+        totalTickets !== 0 ? (ticketsSold / totalTickets) * 100 : 0;
+
+      return {
+        id: raffle.id,
+        title: raffle.nomeRifa,
+        status: raffle.rifaFinalizada,
+        totalTickets: totalTickets,
+        ticketsSold: ticketsSold,
+        ticketAvaible: ticletsAvailable,
+        ticketPrice: Web3.utils.fromWei(raffle.precoBilhete, "ether"),
+        totalReward: Web3.utils.fromWei(raffle.valorPremio, "ether"),
+        //ticketPrice: raffle.precoBilhete,
+        //totalReward: raffle.valorPremio,
+        drawDate: "2021-10-10",
+        isFinished: raffle.rifaFinalizada,
+        progressWidth: progressWidth,
+      };
+    });
+    console.log(structedRaffles);
+    return structedRaffles;
   } catch (error: any) {
     console.log(error);
     reportError("Erro ao listar rifas.");
@@ -145,6 +169,6 @@ export {
   initializeConnectedAccount,
   connectWallet,
   isWalletConnected,
-  createRuffle,
+  createRaffle,
   getAllRuffles,
 };

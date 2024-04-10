@@ -1,4 +1,12 @@
 import React from "react";
+import {
+  FaCog,
+  FaCreditCard,
+  FaHeadset,
+  FaTachometerAlt,
+  FaTicketAlt,
+  FaWallet,
+} from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const SideBar: React.FC = () => {
@@ -14,15 +22,16 @@ const SideBar: React.FC = () => {
   interface MenuItem {
     name: string;
     to: string;
+    icon: React.ReactNode;
   }
 
   const menuItems: MenuItem[] = [
-    { name: "Dashboard", to: "/dashboard" },
-    { name: "Minhas rifas", to: "/dashboard/minhas-rifas" },
-    { name: "Meus tickets", to: "/dashboard/meus-tickets" },
-    { name: "Transações", to: "/dashboard/transacoes" },
-    { name: "Suporte", to: "/suporte" },
-    { name: "Configuração", to: "/dashboard/configuracao" },
+    { name: "Dashboard", to: "/dashboard", icon: <FaTachometerAlt /> },
+    { name: "Criar Rifa", to: "/dashboard/rifa", icon: <FaTicketAlt /> },
+    { name: "Meus tickets", to: "/dashboard/meus-tickets", icon: <FaWallet /> },
+    { name: "Transações", to: "/dashboard/transacoes", icon: <FaCreditCard /> },
+    { name: "Suporte", to: "/suporte", icon: <FaHeadset /> },
+    { name: "Configuração", to: "/dashboard/configuracao", icon: <FaCog /> },
   ];
 
   return (
@@ -53,7 +62,10 @@ const SideBar: React.FC = () => {
               }`}
               onClick={() => handleMenuItemClick(item.to)}
             >
-              {item.name}
+              <div className="flex flex-row items-center">
+                {item.icon}
+                <span className="ml-4">{item.name}</span>
+              </div>
             </li>
           ))}
         </ul>

@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { truncateAddress, useGlobalState } from "../store";
 import { connectWallet } from "../Blockchain.services";
 import { MATIC_CHAIN_ID_TESTNET } from "../constants";
 
 const Header = () => {
+  const navigate = useNavigate();
   const [connectedAccount] = useGlobalState("connectedAccount");
 
   function scrollToSection(sectionId: string): void {
@@ -16,6 +18,22 @@ const Header = () => {
       });
     }
   }
+
+  const handleLogin = () => {
+    try {
+      connectWallet()
+        .then(() => {
+          setTimeout(() => {
+            navigate("/dashboard");
+          }, 1000);
+        })
+        .catch(() => {
+          // handle error here
+        });
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <nav className="w-4/5 flex justify-between items-center py-4 mx-auto">
@@ -64,7 +82,7 @@ const Header = () => {
       ) : (
         <button
           className="shadow-xl shadow-black text-white bg-[#e32970] hover:bg-[#bd255f] md: p-2 rounded-full cursor-pointer"
-          onClick={connectWallet}
+          onClick={handleLogin}
         >
           Conectar Carteira
         </button>
@@ -74,3 +92,6 @@ const Header = () => {
 };
 
 export default Header;
+function then(arg0: () => void) {
+  throw new Error("Function not implemented.");
+}

@@ -29,7 +29,7 @@ const Dashboard: React.FC = () => {
 
   const noRifas = 0;
 
-  const filteredList = listOfRaffle.filter((raffle) =>
+  const filteredList = raffles?.filter((raffle) =>
     raffleStatusFilter === 1
       ? !raffle.isFinished
       : raffleStatusFilter === 2
@@ -57,9 +57,10 @@ const Dashboard: React.FC = () => {
             Aqui estão suas rifas criadas
           </span>
 
-          <div className="relative mt-2 w-50">
+          <div className="relative mt-2 w-full flex flex-row items-center justify-between">
+            {/* Select alinhado à esquerda */}
             <select
-              className="appearance-none w-full border border-black bg-white px-4 py-2 pr-8 rounded-lg shadow-sm leading-tight focus:outline-none focus:shadow-outline"
+              className="appearance-none w-50 border border-black bg-white px-4 py-2 pr-8 rounded-lg shadow-sm leading-tight focus:outline-none focus:shadow-outline"
               name="status"
               value={raffleStatusFilter}
               onChange={(e) => setRaffleStatusFilter(Number(e.target.value))}
@@ -67,19 +68,17 @@ const Dashboard: React.FC = () => {
               <option value={1}>Em andamento</option>
               <option value={2}>Finalizadas</option>
             </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-              <svg
-                className="fill-current h-4 w-4"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M9.293 12.707a1 1 0 001.414-1.414L6.707 8.586a1 1 0 00-1.414 1.414l3.293 3.293zm1.414-1.414a1 1 0 01-1.414 1.414L8.586 9.293a1 1 0 011.414-1.414l1.707 1.707z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
+
+            {/* Button alinhado à direita */}
+            <a href="/dashboard/rifa">
+              <Button
+                text="Criar Rifa"
+                icon={<FaTicketAlt />}
+                onClick={() => {}}
+                className="bg-green-600 hover:bg-green-800 shadow-xl shadow-black text-white py-2 px-4 rounded-full flex items-center justify-center w-50"
+                disabled={false}
+              />
+            </a>
           </div>
 
           {/*--RIFAS */}
