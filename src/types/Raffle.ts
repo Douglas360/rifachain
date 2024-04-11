@@ -1,6 +1,7 @@
 export type Raffle = {
   id?: number;
   title: string;
+  metadataURI?: string;
   status?: string;
   totalTickets: number;
   ticketsSold?: number;

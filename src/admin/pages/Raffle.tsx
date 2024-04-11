@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 //import axios from "axios";
 
@@ -7,8 +7,15 @@ import { FaTicketAlt } from "react-icons/fa";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import { createRaffle } from "../../Blockchain.services";
-import { setAlert, setGlobalState } from "../../store";
+import { setAlert, setGlobalState, setLoadingMsg } from "../../store";
 import { Raffle } from "../../types/Raffle";
+import axios from "axios";
+
+const pinataJWT =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzZjAzZDllMi04ZGQ2LTQyMjEtYTc1ZS02ZjI0NjkzYTI3ZTQiLCJlbWFpbCI6ImRvdWdsYXNfaGVucmlxdWVkdWFydGVAaG90bWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJpZCI6IkZSQTEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX0seyJpZCI6Ik5ZQzEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiZmEyZDYxZDRkYjlhNzJmMTY2ODUiLCJzY29wZWRLZXlTZWNyZXQiOiJmZjAxYWY3NjliNmRhZGJiZjhmYTQ3OGY1MjA0NmNlYjBmYzk1MzM4MjI1MTg0MWVhZGIzNGZiMGYzMWVjN2JjIiwiaWF0IjoxNzA2MTI0NTAwfQ.V_8v4FUVhSF4NdrWk_fr7H7ApIqm1kYCtaSHbjeLK4k";
+const pinataBaseURL = "https://api.pinata.cloud/";
+const pinataEndpoint = "pinning/pinFileToIPFS";
+const auth = `Bearer ${pinataJWT}`;
 
 const Ruffle: React.FC = () => {
   const navigate = useNavigate();
@@ -16,19 +23,55 @@ const Ruffle: React.FC = () => {
   const [totalReward, setTotalReward] = useState("2");
   const [ticketPrice, setTicketPrice] = useState("1");
   const [totalTicket, setTotalTicket] = useState(100);
+  const [fileUrl, setFileUrl] = useState<File | null>(null);
+  const [imgBase64, setImgBase64] = useState<string | ArrayBuffer | null>(null);
 
-  const handleCreateRaffle = async (e: { preventDefault: () => void }) => {
+  const handleCreateRaffle = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (
+      title === "" ||
+      totalReward === "" ||
+      ticketPrice === "" ||
+      totalTicket === 0 ||
+      !fileUrl
+    ) {
+      return;
+    }
+
     try {
-      setGlobalState("loading", { show: true, msg: "Criando sua rifa..." });
+      // Upload da imagem para Pinata
+      const formData = new FormData();
+      formData.append("file", fileUrl);
+
+      const res = await axios.post(
+        `${pinataBaseURL}${pinataEndpoint}`,
+        formData,
+        {
+          maxBodyLength: Infinity,
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: auth,
+          },
+        }
+      );
+
+      const metadataURI = `https://black-tropical-parakeet-136.mypinata.cloud/ipfs/${res.data.IpfsHash}`;
+
+      // Criação da rifa com os dados
       const data: Raffle = {
         title: title,
+        metadataURI: metadataURI,
         totalTickets: totalTicket,
         ticketPrice: ticketPrice,
         totalReward: totalReward,
       };
-      const ruffle = await createRaffle(data);
-      if (ruffle) {
+
+      // Chama a função para criar a rifa
+      setGlobalState("loading", { show: true, msg: "Criando rifa..." });
+      const raffle = await createRaffle(data);
+
+      if (raffle) {
         setAlert("Rifa criada com sucesso!", "green");
         setTimeout(() => {
           navigate("/dashboard");
@@ -39,6 +82,31 @@ const Ruffle: React.FC = () => {
       setAlert("Minting failed...", "red");
     }
   };
+
+  const changeImage = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+
+    if (files && files.length > 0) {
+      const file = files[0];
+      const reader = new FileReader();
+
+      reader.readAsDataURL(file);
+
+      reader.onload = (readerEvent) => {
+        const result = readerEvent.target?.result;
+
+        if (
+          result &&
+          (typeof result === "string" || result instanceof ArrayBuffer)
+        ) {
+          setImgBase64(result);
+        }
+
+        setFileUrl(file);
+      };
+    }
+  };
+
   return (
     <Layout>
       <div className="flex flex-col mt-4 md:mt-0 md:ml-4 mx-auto w-4/5">
@@ -52,6 +120,38 @@ const Ruffle: React.FC = () => {
         {/*--FORM */}
         <div className="mt-7">
           <form onSubmit={handleCreateRaffle}>
+            <div className="flex flex-row justify-center items-center rounded-xl mt-5">
+              <div className="shrink-0 rounded-xl overflow-hidden h-50 w-50">
+                <img
+                  alt="Reward"
+                  className="h-full w-full object-cover cursor-pointer"
+                  src={
+                    imgBase64
+                      ? imgBase64.toString()
+                      : "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1361&q=80"
+                  }
+                />
+              </div>
+            </div>
+            <div className="flex flex-row justify-between items-center bg-gray-800 rounded-xl mt-5">
+              <label className="block">
+                <span className="sr-only">Choose profile photo</span>
+                <input
+                  type="file"
+                  accept="image/png, image/gif, image/jpeg, image/webp"
+                  className="block w-full text-sm text-slate-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-full file:border-0
+                    file:text-sm file:font-semibold
+                    file:text-white
+                    file:bg-primary file:text-gray-400
+                    hover:file:bg-fuchsia-950 
+                    cursor-pointer focus:ring-0 focus:outline-none"
+                  onChange={changeImage}
+                  required
+                />
+              </label>
+            </div>
             <div className="flex flex-col">
               <Input
                 label="Nome da rifa"

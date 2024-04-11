@@ -9,6 +9,7 @@ const { setGlobalState, useGlobalState, getGlobalState } =
     loading: { show: false, msg: "" },
     showModal: "scale-0",
     raffle: {},
+    transactions: [],
   });
 
 const setAlert = (msg: string, color: "" | "red" | "green" = "green") => {

@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import logo from "../../assets/logo.png";
 import { truncateAddress, useGlobalState } from "../../store";
 import { connectWallet } from "../../Blockchain.services";

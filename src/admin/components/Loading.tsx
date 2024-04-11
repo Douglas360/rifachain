@@ -1,6 +1,5 @@
 import React from "react";
 import { useGlobalState } from "../../store";
-import { ImSpinner2 } from "react-icons/im";
 
 interface LoadingProps {}
 

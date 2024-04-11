@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { truncateAddress, useGlobalState } from "../store";
@@ -92,6 +91,3 @@ const Header = () => {
 };
 
 export default Header;
-function then(arg0: () => void) {
-  throw new Error("Function not implemented.");
-}

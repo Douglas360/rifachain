@@ -1,5 +1,5 @@
 import React from "react";
-import { FiMail, FiPhone, FiHelpCircle } from "react-icons/fi";
+import { FiMail, FiPhone } from "react-icons/fi";
 import Header from "./Header";
 
 const SupportPage = () => {

@@ -1,4 +1,5 @@
 import Web3 from "web3";
+import { formatDistanceToNow } from "date-fns";
 import abi from "./abis/Rifa.json";
 
 import {
@@ -99,8 +100,10 @@ const getContract = async () => {
     return null;
   }
 };
+
 const createRaffle = async ({
   title,
+  metadataURI,
   ticketPrice,
   totalReward,
   totalTickets,
@@ -114,7 +117,7 @@ const createRaffle = async ({
     const account = getGlobalState("connectedAccount");
 
     return await contract.methods
-      .criarRifa(title, totalReward, ticketPrice, totalTickets)
+      .criarRifa(title, metadataURI, totalReward, ticketPrice, totalTickets)
       .send({ from: account });
   } catch (error: any) {
     console.log(error);
@@ -122,7 +125,7 @@ const createRaffle = async ({
   }
 };
 
-const getAllRuffles = async () => {
+const getAllRaffles = async () => {
   try {
     const contract = await getContract();
     if (!contract) return reportError("Contrato não encontrado.");
@@ -147,8 +150,6 @@ const getAllRuffles = async () => {
         ticketAvaible: ticletsAvailable,
         ticketPrice: Web3.utils.fromWei(raffle.precoBilhete, "ether"),
         totalReward: Web3.utils.fromWei(raffle.valorPremio, "ether"),
-        //ticketPrice: raffle.precoBilhete,
-        //totalReward: raffle.valorPremio,
         drawDate: "2021-10-10",
         isFinished: raffle.rifaFinalizada,
         progressWidth: progressWidth,
@@ -162,6 +163,101 @@ const getAllRuffles = async () => {
   }
 };
 
+const fetchRaflle = async (id: number) => {
+  try {
+    const contract = await getContract();
+    if (!contract) return reportError("Contrato não encontrado.");
+
+    const raffle = (await contract.methods.rifas(id).call()) as {
+      nomeRifa: string;
+      metadataURI: string;
+      precoBilhete: string;
+      quantidadeBilhete: string;
+      bilhetesDisponiveis: string;
+      valorPremio: string;
+    };
+
+    const transactions = (await contract.methods.listarTransacoes().call()) as {
+      id: number;
+      from: string;
+      value: string;
+      transactionID: string;
+      quantidadeBilhete: string;
+      timestamp: string;
+    }[];
+    console.log(transactions);
+    const structedTransactions = transactions.map((transaction) => {
+      return {
+        id: Number(transaction.id),
+        user: transaction.from,
+        cost: Web3.utils.fromWei(transaction.value, "ether"),
+        tx: "0x",
+        timeStamp: formatDistanceToNow(
+          new Date(parseInt(transaction.timestamp, 10) * 1000),
+          { addSuffix: true } // Adiciona sufixos como "ago" ou "from now"
+        ),
+      };
+    });
+
+    //Order by id desc to show the last transactions first
+    structedTransactions.sort((a, b) => b.id - a.id);
+    setGlobalState("transactions", structedTransactions);
+
+    const totalTickets = Number(raffle.quantidadeBilhete);
+    const ticletsAvailable = Number(raffle.bilhetesDisponiveis);
+    const ticketsSold = totalTickets - ticletsAvailable;
+
+    const progressWidth =
+      totalTickets !== 0 ? (ticketsSold / totalTickets) * 100 : 0;
+
+    const structedRaffle: Raffle = {
+      id: id,
+      title: raffle.nomeRifa,
+      metadataURI: raffle.metadataURI,
+      ticketPrice: Web3.utils.fromWei(raffle.precoBilhete, "ether"),
+      totalTickets: totalTickets,
+      ticketsSold: ticketsSold,
+      totalReward: Web3.utils.fromWei(raffle.valorPremio, "ether"),
+      progressWidth: progressWidth,
+    };
+
+    return structedRaffle;
+  } catch (error: any) {
+    console.log(error);
+    reportError("Erro ao buscar rifa.");
+  }
+};
+
+const buyTicket = async (raffleId: number, quantity: number, value: string) => {
+  try {
+    const contract = await getContract();
+    if (!contract) return reportError("Contrato não encontrado.");
+    const account = getGlobalState("connectedAccount");
+
+    const valueInWei = Web3.utils.toWei(value, "ether");
+
+    return await contract.methods
+      .comprarBilhete(raffleId, quantity)
+      .send({ from: account, value: valueInWei });
+  } catch (error: any) {
+    console.log(error);
+    reportError("Erro ao comprar bilhete.(");
+  }
+};
+const updateTransaction = async (id: number, tx: string) => {
+  try {
+    const contract = await getContract();
+    if (!contract) return reportError("Contrato não encontrado.");
+    const account = getGlobalState("connectedAccount");
+    console.log(id, tx);
+    return await contract.methods
+      .atualizarTransacao(id, tx)
+      .send({ from: account });
+  } catch (error: any) {
+    console.log(error);
+    reportError("Erro ao atualizar transação.");
+  }
+};
 const reportError = (error: string) => {
   setAlert(JSON.stringify(error), "red");
 };
@@ -171,5 +267,8 @@ export {
   connectWallet,
   isWalletConnected,
   createRaffle,
-  getAllRuffles,
+  getAllRaffles,
+  fetchRaflle,
+  buyTicket,
+  updateTransaction,
 };

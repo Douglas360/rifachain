@@ -5,7 +5,7 @@ import Layout from "../layout";
 import Button from "../components/Button";
 import NoRaffle from "../components/NoRaffle";
 import CardRaffle from "../components/CardRaffle";
-import { getAllRuffles } from "../../Blockchain.services";
+import { getAllRaffles } from "../../Blockchain.services";
 import { getGlobalState } from "../../store";
 import { Raffle } from "../../types/Raffle";
 import ShowRaffle from "../components/ShowRaffle";
@@ -18,7 +18,7 @@ const Dashboard: React.FC = () => {
     const account = getGlobalState("connectedAccount");
     const fetchData = async () => {
       console.log("Fetching raflles");
-      const fetchedRaffles = await getAllRuffles();
+      const fetchedRaffles = await getAllRaffles();
       setRaffles(fetchedRaffles as Raffle[]);
     };
     if (account) {

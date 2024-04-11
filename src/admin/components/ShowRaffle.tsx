@@ -1,11 +1,11 @@
 import React from "react";
-import { useGlobalState, getGlobalState, setGlobalState } from "../../store";
+import { useGlobalState, setGlobalState } from "../../store";
 import Button from "./Button";
 import { FaTimes } from "react-icons/fa";
 
 const ShowRaffle = () => {
   const [showModal] = useGlobalState("showModal");
-  const [raffle] = useGlobalState("raffle");
+  //const [raffle] = useGlobalState("raffle");
   return (
     <div
       className={`fixed top-0 left-0 w-screen h-screen flex items-center

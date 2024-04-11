@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 import { Raffle } from "../../types/Raffle";
 import Button from "./Button";
-import { FaCheckCircle, FaClock, FaTicketAlt } from "react-icons/fa";
+import {
+  FaCheckCircle,
+  FaClock,
+  FaShareSquare,
+  FaTicketAlt,
+} from "react-icons/fa";
 import { setGlobalState } from "../../store";
+//import { encodeId } from "../../functions/encodeId";
 
 const CardRaffle: React.FC<{ raffles: Raffle[] }> = ({ raffles }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -18,6 +24,19 @@ const CardRaffle: React.FC<{ raffles: Raffle[] }> = ({ raffles }) => {
   const setRaflle = (raffle: Raffle) => {
     setGlobalState("raffle", raffle);
     setGlobalState("showModal", "scale-100");
+  };
+
+  const handleShareRaffle = (id: number) => {
+    //const encodedId = encodeId(id);
+    //const url = `/s/${encodedId}`;
+    const url = `/s/${id}`;
+    //TOdo: abrir o link em outra aba
+
+    // Abrir o link em outra aba usando window.open()
+    const newTab = window.open(url, "_blank");
+    if (newTab) {
+      newTab.focus(); // Opcional: focar na nova aba aberta
+    }
   };
 
   return (
@@ -99,7 +118,14 @@ const CardRaffle: React.FC<{ raffles: Raffle[] }> = ({ raffles }) => {
               text="Ver Rifa"
               icon={<FaTicketAlt />}
               onClick={() => setRaflle(raffle)}
-              className="bg-primary hover:bg-[#bd255f] shadow-xl shadow-black text-white py-2 px-4 rounded-full flex items-center justify-center"
+              className="bg-primary hover:bg-[#bd255f] shadow-xl shadow-black text-white py-2 px-4 mr-1 rounded-full flex items-center justify-center"
+              disabled={false}
+            />
+            <Button
+              text="Compartilhar Rifa"
+              icon={<FaShareSquare />}
+              onClick={() => handleShareRaffle(Number(raffle.id))}
+              className="bg-green-600 hover:bg-green-800 shadow-xl shadow-black text-white py-2 px-4 rounded-full flex items-center justify-center"
               disabled={false}
             />
           </div>

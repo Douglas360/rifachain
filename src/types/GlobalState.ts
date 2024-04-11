@@ -7,4 +7,5 @@ export interface IGlobalState {
   loading: { show: boolean; msg: string };
   showModal: string;
   raffle: any;
+  transactions: any[];
 }

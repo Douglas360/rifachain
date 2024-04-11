@@ -1,101 +1,101 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+
 import { Raffle } from "../types/Raffle";
-import { BiTransfer } from "react-icons/bi";
 import { MdOpenInNew } from "react-icons/md";
-import { truncate } from "../store";
+import { setAlert, setGlobalState, setLoadingMsg, truncate } from "../store";
 import { MATIC_BLOCK_EXPLORER_URL_TESTNET } from "../constants";
 import Footer from "../components/Footer";
 import { useParams } from "react-router-dom";
+import {
+  buyTicket,
+  fetchRaflle,
+  connectWallet,
+  updateTransaction,
+} from "../Blockchain.services";
+import { getGlobalState } from "../store";
+import Button from "../admin/components/Button";
 
-const RafflePage: React.FC<Raffle> = (raffle: Raffle) => {
+const RafflePage: React.FC = () => {
+  const user = getGlobalState("connectedAccount");
   //GET ID FROM URL PARAMS AND FETCH RAFFLE DATA FROM API USING ID
   const { slug } = useParams<{ slug: string }>();
+  //const id = decodeId(slug ?? "");
   const id = slug;
-  //FETCH RAFFLE DATA USING ID
-  // const raffle = fetchRaffle(id);
-  // const { title, ticketPrice, totalTickets, ticketsSold, totalReward, progressWidth } = raffle;
-  // const transaction = fetchTransactions(id);
+  const [raffle, setRaffle] = useState<Raffle>();
+  const [ticketBuy, setTicketBuy] = useState<number>(1);
+  useEffect(() => {
+    const fetchData = async () => {
+      const res = await fetchRaflle(Number(id));
+      if (res) {
+        setRaffle(res);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
+  const transactionHash = getGlobalState("transactions");
+  //  console.log(transactionHash[0].timeStamp.toString());
   const {
     title,
+    metadataURI,
     ticketPrice,
     totalTickets,
     ticketsSold,
     totalReward,
     progressWidth,
-  } = raffle;
-  const transaction = [
-    {
-      id: 1,
-      user: "0x1234567890abcdef1234567890abcdef1234567890abcdef",
-      cost: "0.1",
-      tx: "0x38dc38caa31961fa59e78e6fc63bd11ba7cc48445615e65d949f84c80824a982",
-      timeStamp: "27 min ago",
-    },
-    {
-      id: 2,
-      user: "0x1234567890abcdef1234567890abcdef1234567890abcdef",
-      cost: "0.1",
-      tx: "0x9d798c0c5453d7c280fdf36ae279bb79aa827543a1723aaf4be4583132e64aeb",
-      timeStamp: "1 hour ago",
-    },
-    {
-      id: 3,
-      user: "0xabcedf1234567890abcdef1234567890abcdef1234",
-      cost: "0.2",
-      tx: "0xd6c34ab7b7deaf26308a087aaec1776752c547dd6a184a561450389645098b6d",
-      timeStamp: "2 hours ago",
-    },
-    {
-      id: 4,
-      user: "0x0fedcba09876543210fedcba09876543210fedcba",
-      cost: "1.5",
-      tx: "0x38dc38caa31961fa59e78e6fc63bd11ba7cc48445615e65d949f84c80824a982",
-      timeStamp: "5 hours ago",
-    },
-    {
-      id: 5,
-      user: "0x0123456789abcdef0123456789abcdef012345",
-      cost: "0.01",
-      tx: "0xd6c34ab7b7deaf26308a087aaec1776752c547dd6a184a561450389645098b6d",
-      timeStamp: "10 hours ago",
-    },
-    {
-      id: 6,
-      user: "0x9876543210fedcba9876543210fedcba987654",
-      cost: "5.0",
-      tx: "0xd6c34ab7b7deaf26308a087aaec1776752c547dd6a184a561450389645098b6d",
-      timeStamp: "1 day ago",
-    },
-    {
-      id: 7,
-      user: "0xfededcba0987654321fedcba0987654321fedcb",
-      cost: "0.75",
-      tx: "0xd6c34ab7b7deaf26308a087aaec1776752c547dd6a184a561450389645098b6d",
-      timeStamp: "1 day ago",
-    },
-    {
-      id: 8,
-      user: "0xabcdef0123456789abcdef0123456789abcdef",
-      cost: "2.22",
-      tx: "0xd6c34ab7b7deaf26308a087aaec1776752c547dd6a184a561450389645098b6d",
-      timeStamp: "2 days ago",
-    },
-    {
-      id: 9,
-      user: "0x543210fedcba9876543210fedcba98765432",
-      cost: "0.05",
-      tx: "0xd6c34ab7b7deaf26308a087aaec1776752c547dd6a184a561450389645098b6d",
-      timeStamp: "3 days ago",
-    },
-    {
-      id: 10,
-      user: "0xffffffff00000000ffffffff00000000ffffffff",
-      cost: "10.0",
-      tx: "0xd6c34ab7b7deaf26308a087aaec1776752c547dd6a184a561450389645098b6d",
-      timeStamp: "1 week ago",
-    },
-  ];
-  // mock data
+  } = raffle || {
+    title: "",
+    ticketPrice: "",
+    totalTickets: 0,
+    ticketsSold: 0,
+    totalReward: "",
+    progressWidth: 0,
+  };
+
+  const handleDecrease = () => {
+    if (ticketBuy > 1) {
+      setTicketBuy(ticketBuy - 1);
+      //TODO: CALCULATE VALUE
+    }
+  };
+
+  const handleIncrease = () => {
+    setTicketBuy(ticketBuy + 1);
+  };
+
+  const handleBuyTicket = async () => {
+    const value = Number(ticketPrice) * ticketBuy;
+
+    setGlobalState("loading", { show: true, msg: "Comprando bilhete." });
+    setLoadingMsg("Comprando bilhete...");
+    const transactionReceipt = await buyTicket(
+      Number(id),
+      ticketBuy,
+      value.toString()
+    );
+
+    if (transactionReceipt && transactionReceipt.status) {
+      // Atualiza a transação no contrato
+      const id = Number();
+      const tx = transactionReceipt.transactionHash;
+      await updateTransaction(id, tx);
+      // Se a transação foi bem-sucedida (status = true), exibe mensagem de sucesso
+      setAlert("Bilhete comprado com sucesso!", "green");
+    } else {
+      // Se a transação falhou ou não foi confirmada, exibe mensagem de erro
+      setAlert(
+        "Falha ao comprar o bilhete. Tente novamente mais tarde.",
+        "red"
+      );
+    }
+
+    //TODO: check if buy return mined and execution succeed or failed
+  };
+
+  const handleConnectWallet = async () => {
+    await connectWallet();
+  };
   return (
     <>
       <div className="bg-black p-5 min-h-screen ">
@@ -104,8 +104,8 @@ const RafflePage: React.FC<Raffle> = (raffle: Raffle) => {
           <div className="w-full md:w-1/2 p-5">
             <img
               className="w-full h-full object-cover rounded-lg"
-              src="https://cdn.pixabay.com/photo/2017/03/20/19/16/track-crisscross-2160059_1280.jpg"
-              alt="Rifa do iPhone 13"
+              src={metadataURI}
+              alt={title}
             />
           </div>
 
@@ -115,40 +115,106 @@ const RafflePage: React.FC<Raffle> = (raffle: Raffle) => {
             <p className="text-white mt-5">
               Preço do ticket: {ticketPrice} ETH
             </p>
-            <p className="text-white">Total de tickets: {totalTickets}</p>
-            <p className="text-white">Tickets vendidos: {ticketsSold}</p>
             <p className="text-white">Recompensa total: {totalReward} ETH</p>
-            <div className="w-full bg-white h-2 mt-5 rounded-full">
-              <div
-                className="bg-primary h-2 rounded-full"
-                style={{ width: `${progressWidth}%` }}
-              ></div>
-            </div>
-            <div className="flex justify-between mt-5">
-              <p className="text-white">0%</p>
-              <p className="text-white">50%</p>
-              <p className="text-white">100%</p>
-            </div>
-            <h1 className="text-4xl text-white">Comprar ticket</h1>
-            <input
+
+            {/*PROGRESS BAR */}
+            {ticketsSold === 0 ? (
+              <span className="text-slate-500 text-sm mt-2 block text-center">
+                Nenhum bilhete vendido
+              </span>
+            ) : (
+              <>
+                <div className="bg-slate-300 h-3 rounded-full mt-5 relative">
+                  <div
+                    className={`${
+                      progressWidth === 100
+                        ? "bg-green-500 h-3 rounded-full"
+                        : "bg-primary h-3 rounded-full"
+                    }`}
+                    style={{
+                      width: `${progressWidth}%`,
+                      transition: "width 1s ease-in-out",
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                    }}
+                  >
+                    {/* Texto de progresso */}
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        color: "white",
+                        fontSize: "12px",
+                      }}
+                    >
+                      {progressWidth}%
+                    </span>
+                  </div>
+                </div>
+                <small>
+                  <span className="text-slate-300">
+                    {ticketsSold}/{totalTickets} tickets vendidos
+                  </span>
+                </small>
+              </>
+            )}
+
+            <h1 className="text-3xl text-white md:mt-3">Comprar ticket</h1>
+            {/*<input
               type="number"
               className="w-full p-2 mt-5 rounded-lg"
               placeholder="Quantidade de tickets"
-            />
-            <span className="text-slate-300 mt-5 text-sm">
-              Quantidade estimada de ETH: {Number(ticketPrice) * totalTickets}{" "}
-              ETH
-            </span>
-            <button className="w-full p-2 mt-5 bg-primary text-white rounded-lg">
-              Comprar
-            </button>
+          />*/}
+            <div>
+              <div className="flex flex-row justify-between items-center mt-5">
+                <button
+                  onClick={handleDecrease}
+                  className="bg-primary text-white p-2 rounded-lg"
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  value={ticketBuy}
+                  className="w-1/2 p-2 text-center rounded-lg"
+                  readOnly
+                />
+                <button
+                  onClick={handleIncrease}
+                  className="bg-primary text-white p-2 rounded-lg"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            <small className="text-slate-300 mt-5 ">
+              Quantidade estimada de ETH: {Number(ticketPrice) * ticketBuy} ETH
+            </small>
+            {user ? (
+              <Button
+                text="Comprar"
+                onClick={handleBuyTicket}
+                className="w-full p-2 mt-5 bg-primary text-white rounded-lg hover:bg-[#bd255f]"
+                disabled={false}
+              />
+            ) : (
+              <Button
+                text="Conectar Carteira"
+                onClick={handleConnectWallet}
+                className="w-full p-2 mt-5 bg-primary text-white rounded-lg hover:bg-[#bd255f]"
+                disabled={false}
+              />
+            )}
           </div>
         </div>
 
         {/*LATESTS TRANSACTIONS */}
         <div className="w-full mt-2 md:w-4/5 flex flex-col items-center justify-center mx-auto border border-primary rounded-lg shadow shadow-primary">
           <h4 className="text-white text-3xl font-bold uppercase text-gradient mt-2">
-            {transaction.length !== 0
+            {transactionHash.length !== 0
               ? "Últimas transações"
               : "Sem transações disponíveis"}
           </h4>
@@ -160,12 +226,9 @@ const RafflePage: React.FC<Raffle> = (raffle: Raffle) => {
               <p className="hidden md:block">Custo</p>
               <p>Tempo</p>
             </div>
-            {transaction?.map((tx: any) => (
-              <>
-                <div
-                  key={tx.id}
-                  className="flex justify-between w-full  md:overflow-hidden p-2 text-slate-300"
-                >
+            {transactionHash?.map((tx: any) => (
+              <div key={tx.id}>
+                <div className="flex justify-between w-full  md:overflow-hidden p-2 text-slate-300">
                   {/*user */}
                   <small className="hidden md:block">
                     <span className="flex flex-row justify-start items-center text-pink-500 ">
@@ -197,13 +260,15 @@ const RafflePage: React.FC<Raffle> = (raffle: Raffle) => {
 
                   {/*time */}
                   <small>
-                    <span className="text-pink-500">{tx.timeStamp}</span>
+                    <span className="text-pink-500">
+                      {tx.timeStamp.toString()}
+                    </span>
                   </small>
                 </div>
 
                 {/*divider */}
                 <div className="w-full bg-slate-500 h-0.5"></div>
-              </>
+              </div>
             ))}
           </div>
         </div>
