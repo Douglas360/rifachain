@@ -1,6 +1,6 @@
 import Web3 from "web3";
 import { formatDistanceToNow } from "date-fns";
-import abi from "./abis/Rifa.json";
+import abi from "./abis/contracts/RifaChain.sol/Rifa.json";
 
 import {
   CONTRACT_ADDRESS,
@@ -175,13 +175,16 @@ const fetchRaflle = async (id: number) => {
       quantidadeBilhete: string;
       bilhetesDisponiveis: string;
       valorPremio: string;
+      rifaFinalizada: boolean;
+      ganhador: string;
     };
+    //console.log(raffle);
 
     const transactions = (await contract.methods.listarTransacoes().call()) as {
       id: number;
       from: string;
       value: string;
-      transactionID: string;
+      tx: string;
       quantidadeBilhete: string;
       timestamp: string;
     }[];
@@ -191,7 +194,7 @@ const fetchRaflle = async (id: number) => {
         id: Number(transaction.id),
         user: transaction.from,
         cost: Web3.utils.fromWei(transaction.value, "ether"),
-        tx: "0x",
+        tx: transaction.tx,
         timeStamp: formatDistanceToNow(
           new Date(parseInt(transaction.timestamp, 10) * 1000),
           { addSuffix: true } // Adiciona sufixos como "ago" ou "from now"
@@ -219,6 +222,8 @@ const fetchRaflle = async (id: number) => {
       ticketsSold: ticketsSold,
       totalReward: Web3.utils.fromWei(raffle.valorPremio, "ether"),
       progressWidth: progressWidth,
+      isFinished: raffle.rifaFinalizada,
+      winner: raffle.ganhador,
     };
 
     return structedRaffle;
@@ -249,7 +254,7 @@ const updateTransaction = async (id: number, tx: string) => {
     const contract = await getContract();
     if (!contract) return reportError("Contrato não encontrado.");
     const account = getGlobalState("connectedAccount");
-    console.log(id, tx);
+    //console.log(id, tx);
     return await contract.methods
       .atualizarTransacao(id, tx)
       .send({ from: account });

@@ -14,6 +14,7 @@ import {
 } from "../Blockchain.services";
 import { getGlobalState } from "../store";
 import Button from "../admin/components/Button";
+import { FaCheck, FaTicketAlt } from "react-icons/fa";
 
 const RafflePage: React.FC = () => {
   const user = getGlobalState("connectedAccount");
@@ -26,6 +27,7 @@ const RafflePage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       const res = await fetchRaflle(Number(id));
+      //console.log(res);
       if (res) {
         setRaffle(res);
       }
@@ -61,7 +63,22 @@ const RafflePage: React.FC = () => {
   };
 
   const handleIncrease = () => {
-    setTicketBuy(ticketBuy + 1);
+    const availableTickets = totalTickets - Number(ticketsSold);
+    if (ticketBuy < availableTickets) {
+      setTicketBuy(ticketBuy + 1);
+    }
+  };
+
+  const handleTeste = async () => {
+    const res = await updateTransaction(
+      11,
+      "0xc9e9d93a5c0681bc8e945704534c60975cabf84e46942e89f12ac6b88e1c2b93"
+    );
+    console.log(res);
+  };
+
+  const handleRedirect = () => {
+    window.location.href = "/dash board/meus-tickets";
   };
 
   const handleBuyTicket = async () => {
@@ -74,14 +91,23 @@ const RafflePage: React.FC = () => {
       ticketBuy,
       value.toString()
     );
-
+    console.log(transactionReceipt);
     if (transactionReceipt && transactionReceipt.status) {
       // Atualiza a transação no contrato
-      const id = Number();
+      const id = Number(
+        transactionReceipt.events?.TransacaoCriada.returnValues.idTransacao
+      );
       const tx = transactionReceipt.transactionHash;
+      setGlobalState("loading", {
+        show: true,
+        msg: `${(<FaCheck />)} Comprando bilhete. \n Atualizando blockchain...`,
+      });
       await updateTransaction(id, tx);
+
       // Se a transação foi bem-sucedida (status = true), exibe mensagem de sucesso
       setAlert("Bilhete comprado com sucesso!", "green");
+
+      //window.location.reload();
     } else {
       // Se a transação falhou ou não foi confirmada, exibe mensagem de erro
       setAlert(
@@ -112,15 +138,24 @@ const RafflePage: React.FC = () => {
           {/*RIGHT COLUMN */}
           <div className="w-ful md:w-1/2 p-5">
             <h1 className="text-4xl text-white">{title}</h1>
+            <p className="text-xl mt-3 text-white">
+              Prêmio:{" "}
+              <span className="text-3xl text-yellow-400">
+                {totalReward} ETH
+              </span>
+            </p>
             <p className="text-white mt-5">
               Preço do ticket: {ticketPrice} ETH
             </p>
-            <p className="text-white">Recompensa total: {totalReward} ETH</p>
+
+            <p className="text-white">
+              Tickets disponíveis:{totalTickets - Number(ticketsSold)}
+            </p>
 
             {/*PROGRESS BAR */}
             {ticketsSold === 0 ? (
               <span className="text-slate-500 text-sm mt-2 block text-center">
-                Nenhum bilhete vendido
+                Nenhum ticket vendido
               </span>
             ) : (
               <>
@@ -195,22 +230,91 @@ const RafflePage: React.FC = () => {
             </small>
             {user ? (
               <Button
-                text="Comprar"
+                text={raffle?.isFinished ? "Rifa finalizada" : "Comprar"}
                 onClick={handleBuyTicket}
-                className="w-full p-2 mt-5 bg-primary text-white rounded-lg hover:bg-[#bd255f]"
-                disabled={false}
+                className={`w-full p-2 mt-5 ${
+                  raffle?.isFinished ? "bg-slate-500" : "bg-primary"
+                } text-white rounded-lg ${
+                  raffle?.isFinished ? "" : "hover:bg-[#bd255f]"
+                }`}
+                disabled={raffle?.isFinished}
               />
             ) : (
               <Button
-                text="Conectar Carteira"
+                text={
+                  raffle?.isFinished ? "Rifa finalizada" : "Conectar Wallet"
+                }
                 onClick={handleConnectWallet}
-                className="w-full p-2 mt-5 bg-primary text-white rounded-lg hover:bg-[#bd255f]"
-                disabled={false}
+                className={`w-full p-2 mt-5 ${
+                  raffle?.isFinished ? "bg-slate-500" : "bg-primary"
+                } text-white rounded-lg ${
+                  raffle?.isFinished ? "" : "hover:bg-[#bd255f]"
+                }`}
+                disabled={raffle?.isFinished}
               />
             )}
           </div>
         </div>
 
+        {/* FLOATING BUTTON */}
+
+        <Button
+          text="Ver meus tickets"
+          icon={<FaTicketAlt className="text-lg" />}
+          onClick={handleRedirect}
+          className="flex flex-row fixed bottom-10 right-5 bg-primary text-white py-3 px-6 rounded-lg shadow-lg hover:bg-[#bd255f] focus:outline-none"
+        />
+
+        {/*WINNER */}
+        {raffle?.isFinished && (
+          <div className="w-full mt-2 md:w-4/5 flex flex-col items-center justify-center mx-auto border border-primary rounded-lg shadow shadow-primary">
+            <h4 className="text-white text-3xl font-bold uppercase text-gradient mt-2 animate-pulse">
+              Vencedor
+            </h4>
+            <div className="w-4/5 py-2.5">
+              {/*FIRST LINE */}
+              <div className="flex justify-between w-full text-slate-300 text-sm">
+                <p>Endereço</p>
+                <p>Prêmio</p>
+                <p>Hash da transação</p>
+              </div>
+
+              {/*SECOND LINE */}
+              <div className="flex justify-between w-full p-2 text-slate-300">
+                <small>
+                  <span className="flex flex-row justify-start items-center text-pink-500 ">
+                    {raffle?.winner}
+                  </span>
+                </small>
+                <small>
+                  <span className="text-pink-500">
+                    {raffle?.totalReward} ETH
+                  </span>
+                </small>
+                <small>
+                  <span className="flex flex-row ">
+                    <a
+                      href={`${MATIC_BLOCK_EXPLORER_URL_TESTNET}tx/${
+                        raffle?.winner ?? ""
+                      }`}
+                      className="text-pink-500 mr-2"
+                    >
+                      {(raffle?.winner ?? "").slice(0, 10)}...
+                      {(raffle?.winner ?? "").slice(-10)}
+                    </a>
+                    <a
+                      href={`${MATIC_BLOCK_EXPLORER_URL_TESTNET}tx/${
+                        raffle?.winner ?? ""
+                      }`}
+                    >
+                      <MdOpenInNew />
+                    </a>
+                  </span>
+                </small>
+              </div>
+            </div>
+          </div>
+        )}
         {/*LATESTS TRANSACTIONS */}
         <div className="w-full mt-2 md:w-4/5 flex flex-col items-center justify-center mx-auto border border-primary rounded-lg shadow shadow-primary">
           <h4 className="text-white text-3xl font-bold uppercase text-gradient mt-2">

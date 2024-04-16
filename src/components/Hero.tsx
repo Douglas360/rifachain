@@ -2,6 +2,8 @@ import React from "react";
 import { connectWallet } from "../Blockchain.services";
 import { useGlobalState } from "../store";
 
+import imageHero from "../assets/hero.webp";
+
 const Hero = () => {
   const [connectedAccount] = useGlobalState("connectedAccount");
   return (
@@ -54,15 +56,14 @@ items-center mx-auto py-10 md:mt-10"
         </div>
       </div>
 
-      <div
-        className="shadow-xl shadow-primary md:w-2/5 w-full 
-      mt-10 md:mt-0 rounded-md overflow-hidden bg-graydark"
-      >
-        <img
-          src="https://images.cointelegraph.com/images/1434_aHR0cHM6Ly9zMy5jb2ludGVsZWdyYXBoLmNvbS91cGxvYWRzLzIwMjEtMDYvNGE4NmNmOWQtODM2Mi00YmVhLThiMzctZDEyODAxNjUxZTE1LmpwZWc=.jpg"
-          alt="NFT Art"
-          className="h-60 w-full object-cover"
-        />
+      <div className="shadow-xl shadow-primary md:w-2/5 w-full mt-10 md:mt-0 rounded-md overflow-hidden bg-graydark">
+        <div className="aspect-w-5 aspect-h-7">
+          <img
+            src={imageHero}
+            alt="Rifa Online na Blockchain"
+            className="object-cover w-full h-full"
+          />
+        </div>
       </div>
     </div>
   );
