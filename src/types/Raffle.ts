@@ -8,7 +8,9 @@ export type Raffle = {
   ticketAvaible?: number;
   totalReward?: string;
   drawDate?: string;
-  isFinished?: boolean;
+  isActive?: boolean;
   progressWidth?: number;
   winner?: string;
+  isWithdrawn?: boolean;
+  createdAt?: string;
 };

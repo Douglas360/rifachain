@@ -8,7 +8,7 @@ const { setGlobalState, useGlobalState, getGlobalState } =
     alert: { show: false, msg: "", color: "" },
     loading: { show: false, msg: "" },
     showModal: "scale-0",
-    raffle: {},
+    raffles: [],
     transactions: [],
   });
 

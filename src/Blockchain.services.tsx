@@ -1,6 +1,6 @@
 import Web3 from "web3";
 import { formatDistanceToNow } from "date-fns";
-import abi from "./abis/contracts/RifaChain.sol/Rifa.json";
+import abi from "./abis/contracts/Raffle/RaffleV2.json";
 
 import {
   CONTRACT_ADDRESS,
@@ -32,18 +32,17 @@ const connectWallet = async () => {
     if (!ethereum) return reportError("Instalar Metamask.");
     const accounts = await ethereum.request({ method: "eth_requestAccounts" });
     setGlobalState("connectedAccount", accounts[0].toLowerCase());
-
     if (ethereum.chainId !== MATIC_CHAIN_ID_TESTNET) {
       //Se a rede não for a esperada, solicita a troca
       await ethereum.request({
         method: "wallet_addEthereumChain",
         params: [
           {
-            chainId: MATIC_CHAIN_ID_TESTNET, // ID da rede Polygon
+            chainId: MATIC_CHAIN_ID_TESTNET, // ID da rede
             chainName: MATIC_CHAIN_NAME_TESTNET,
             nativeCurrency: {
               name: "MATIC",
-              symbol: "MATIC",
+              symbol: "ETH",
               decimals: 18,
             },
             rpcUrls: [MATIC_RPC_URL_TESTNET],
@@ -52,7 +51,8 @@ const connectWallet = async () => {
         ],
       });
     }
-
+    const raffle = await getAllRaffles();
+    setGlobalState("raffles", raffle);
     setGlobalState("connectedChain", ethereum.chainId);
     localStorage.setItem("connectedAccount", accounts[0].toLowerCase());
     localStorage.setItem("connectedChain", ethereum.chainId);
@@ -117,7 +117,7 @@ const createRaffle = async ({
     const account = getGlobalState("connectedAccount");
 
     return await contract.methods
-      .criarRifa(title, metadataURI, totalReward, ticketPrice, totalTickets)
+      .createRaffle(title, metadataURI, ticketPrice, totalTickets, totalReward)
       .send({ from: account });
   } catch (error: any) {
     console.log(error);
@@ -130,29 +130,32 @@ const getAllRaffles = async () => {
     const contract = await getContract();
     if (!contract) return reportError("Contrato não encontrado.");
     const account = getGlobalState("connectedAccount");
-    //setAlert("Carregando rifas...", "green");
-    const raflle = await contract.methods.listarRifas(account).call();
 
-    const structedRaffles = raflle?.map((raffle: any) => {
-      const totalTickets = Number(raffle.quantidadeBilhete);
-      const ticletsAvailable = Number(raffle.bilhetesDisponiveis);
-      const ticketsSold = totalTickets - ticletsAvailable;
+    //const raffle = await contract.methods.listarRifas(account).call();
+    const raffle = await contract.methods.getRaflle(account).call();
+
+    const structedRaffles = raffle?.map((raffle: any) => {
+      const totalTickets = Number(raffle.ticketCount);
+      const ticketsSold = Number(raffle.ticketSold);
+      const ticketsAvailable = totalTickets - ticketsSold;
 
       const progressWidth =
         totalTickets !== 0 ? (ticketsSold / totalTickets) * 100 : 0;
 
       return {
         id: raffle.id,
-        title: raffle.nomeRifa,
-        status: raffle.rifaFinalizada,
+        title: raffle.name,
+        status: raffle.isActive,
         totalTickets: totalTickets,
         ticketsSold: ticketsSold,
-        ticketAvaible: ticletsAvailable,
-        ticketPrice: Web3.utils.fromWei(raffle.precoBilhete, "ether"),
-        totalReward: Web3.utils.fromWei(raffle.valorPremio, "ether"),
-        drawDate: "2021-10-10",
-        isFinished: raffle.rifaFinalizada,
+        ticketAvaible: ticketsAvailable,
+        ticketPrice: Web3.utils.fromWei(raffle.ticketPrice, "ether"),
+        totalReward: Web3.utils.fromWei(raffle.totalAmountToWin, "ether"),
+        isActive: raffle.isActive,
         progressWidth: progressWidth,
+        isWithdrawn: raffle.isWhidrawn,
+        createdAt: raffle.createadAt,
+        metadataURI: raffle.image,
       };
     });
 
@@ -163,24 +166,24 @@ const getAllRaffles = async () => {
   }
 };
 
-const fetchRaflle = async (id: number) => {
+const fetchRaffle = async (id: number) => {
   try {
     const contract = await getContract();
     if (!contract) return reportError("Contrato não encontrado.");
 
-    const raffle = (await contract.methods.rifas(id).call()) as {
-      nomeRifa: string;
-      metadataURI: string;
-      precoBilhete: string;
-      quantidadeBilhete: string;
-      bilhetesDisponiveis: string;
-      valorPremio: string;
-      rifaFinalizada: boolean;
-      ganhador: string;
+    const raffle = (await contract.methods.raffles(id).call()) as {
+      name: string;
+      image: string;
+      ticketPrice: string;
+      ticketCount: string;
+      ticketSold: string;
+      totalAmountToWin: string;
+      isActive: boolean;
+      winner: string;
     };
     //console.log(raffle);
 
-    const transactions = (await contract.methods.listarTransacoes().call()) as {
+    /*const transactions = (await contract.methods.listarTransacoes().call()) as {
       id: number;
       from: string;
       value: string;
@@ -188,7 +191,7 @@ const fetchRaflle = async (id: number) => {
       quantidadeBilhete: string;
       timestamp: string;
     }[];
-    console.log(transactions);
+    //console.log(transactions);
     const structedTransactions = transactions.map((transaction) => {
       return {
         id: Number(transaction.id),
@@ -204,26 +207,26 @@ const fetchRaflle = async (id: number) => {
 
     //Order by id desc to show the last transactions first
     structedTransactions.sort((a, b) => b.id - a.id);
-    setGlobalState("transactions", structedTransactions);
+    setGlobalState("transactions", structedTransactions);*/
 
-    const totalTickets = Number(raffle.quantidadeBilhete);
-    const ticletsAvailable = Number(raffle.bilhetesDisponiveis);
-    const ticketsSold = totalTickets - ticletsAvailable;
+    const totalTickets = Number(raffle.ticketCount);
+    const ticketsSold = Number(raffle.ticketSold);
+    //const ticletsAvailable = totalTickets - ticketsSold;
 
     const progressWidth =
       totalTickets !== 0 ? (ticketsSold / totalTickets) * 100 : 0;
 
     const structedRaffle: Raffle = {
       id: id,
-      title: raffle.nomeRifa,
-      metadataURI: raffle.metadataURI,
-      ticketPrice: Web3.utils.fromWei(raffle.precoBilhete, "ether"),
+      title: raffle.name,
+      metadataURI: raffle.image,
+      ticketPrice: Web3.utils.fromWei(raffle.ticketPrice, "ether"),
       totalTickets: totalTickets,
       ticketsSold: ticketsSold,
-      totalReward: Web3.utils.fromWei(raffle.valorPremio, "ether"),
+      totalReward: Web3.utils.fromWei(raffle.totalAmountToWin, "ether"),
       progressWidth: progressWidth,
-      isFinished: raffle.rifaFinalizada,
-      winner: raffle.ganhador,
+      isActive: raffle.isActive,
+      winner: raffle.winner,
     };
 
     return structedRaffle;
@@ -233,7 +236,11 @@ const fetchRaflle = async (id: number) => {
   }
 };
 
-const buyTicket = async (raffleId: number, quantity: number, value: string) => {
+const buyTicket = async (
+  raffleId: number,
+  ticketCount: number,
+  value: string
+) => {
   try {
     const contract = await getContract();
     if (!contract) return reportError("Contrato não encontrado.");
@@ -242,7 +249,7 @@ const buyTicket = async (raffleId: number, quantity: number, value: string) => {
     const valueInWei = Web3.utils.toWei(value, "ether");
 
     return await contract.methods
-      .comprarBilhete(raffleId, quantity)
+      .buyTicket(raffleId, ticketCount)
       .send({ from: account, value: valueInWei });
   } catch (error: any) {
     console.log(error);
@@ -267,13 +274,29 @@ const reportError = (error: string) => {
   setAlert(JSON.stringify(error), "red");
 };
 
+const withdrawReward = async (raffleId: number) => {
+  try {
+    const contract = await getContract();
+    if (!contract) return reportError("Contrato não encontrado.");
+    const account = getGlobalState("connectedAccount");
+
+    return await contract.methods
+      .withdrawRaffleAmount(raffleId)
+      .send({ from: account });
+  } catch (error: any) {
+    console.log(error);
+    reportError("Erro ao retirar prêmio.");
+  }
+};
+
 export {
   initializeConnectedAccount,
   connectWallet,
   isWalletConnected,
   createRaffle,
   getAllRaffles,
-  fetchRaflle,
+  fetchRaffle,
   buyTicket,
   updateTransaction,
+  withdrawReward,
 };

@@ -4,10 +4,14 @@ import Button from "./Button";
 import {
   FaCheckCircle,
   FaClock,
+  FaMoneyBill,
   FaShareSquare,
   FaTicketAlt,
 } from "react-icons/fa";
 import { setGlobalState } from "../../store";
+import { withdrawReward } from "../../Blockchain.services";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 //import { encodeId } from "../../functions/encodeId";
 
 const CardRaffle: React.FC<{ raffles: Raffle[] }> = ({ raffles }) => {
@@ -22,7 +26,7 @@ const CardRaffle: React.FC<{ raffles: Raffle[] }> = ({ raffles }) => {
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   const setRaflle = (raffle: Raffle) => {
-    setGlobalState("raffle", raffle);
+    setGlobalState("raffles", raffle);
     setGlobalState("showModal", "scale-100");
   };
 
@@ -30,13 +34,15 @@ const CardRaffle: React.FC<{ raffles: Raffle[] }> = ({ raffles }) => {
     //const encodedId = encodeId(id);
     //const url = `/s/${encodedId}`;
     const url = `/s/${id}`;
-    //TOdo: abrir o link em outra aba
 
-    // Abrir o link em outra aba usando window.open()
     const newTab = window.open(url, "_blank");
     if (newTab) {
-      newTab.focus(); // Opcional: focar na nova aba aberta
+      newTab.focus();
     }
+  };
+
+  const handleWithdrawReward = async (id: number) => {
+    await withdrawReward(id);
   };
 
   return (
@@ -45,24 +51,44 @@ const CardRaffle: React.FC<{ raffles: Raffle[] }> = ({ raffles }) => {
         <div
           key={raffle.id}
           className={`mt-4 w-full border border-slate-300 rounded-md p-2 ${
-            raffle.isFinished ? "bg-slate-300" : ""
+            raffle.isActive ? "" : "bg-slate-300"
           }`}
         >
           <div className="flex flex-row justify-between mb-2">
-            <h1 className="text-slate-800 text-lg font-bold">{raffle.title}</h1>
+            <div className="flex flex-row">
+              <img
+                className="w-12 h-12 rounded-full"
+                src={raffle.metadataURI}
+                alt={raffle.title}
+              />
+              <h1 className="text-slate-800 text-lg font-bold ml-2 mt-2">
+                {raffle.title}
+              </h1>
+            </div>
+
+            <div>
+              <span className="text-slate-500 text-sm">
+                Criado{" "}
+                {formatDistanceToNow(
+                  new Date(parseInt(raffle.createdAt ?? "", 10) * 1000),
+                  { addSuffix: true, locale: ptBR } // Adiciona sufixos como "ago" ou "from now"
+                )}
+              </span>
+            </div>
+
             <div className="flex items-center">
-              {raffle.isFinished ? (
+              {raffle.isActive ? (
                 <span className="text-slate-500 text-sm flex items-center">
-                  <FaCheckCircle className="text-green-500 mr-1" /> Finalizada
+                  <FaClock className="text-yellow-500 mr-1" /> Em andamento
                 </span>
               ) : (
                 <span className="text-slate-500 text-sm flex items-center">
-                  <FaClock className="text-yellow-500 mr-1" /> Em andamento
+                  <FaCheckCircle className="text-green-500 mr-1" /> Finalizada
                 </span>
               )}
             </div>
           </div>
-          <div className="flex flex-row justify-between mt-2">
+          <div className="flex flex-row justify-between mt-3">
             <div>
               <span className="text-slate-500 text-sm">Total de bilhetes</span>
               <p className="text-slate-800 text-lg font-bold">
@@ -76,7 +102,7 @@ const CardRaffle: React.FC<{ raffles: Raffle[] }> = ({ raffles }) => {
               </p>
             </div>
 
-            <div>
+            <div className="hidden md:block lg:block">
               <span className=" text-slate-500 text-sm">Preço do bilhete</span>
               <div className="flex flex-row">
                 <img
@@ -121,17 +147,31 @@ const CardRaffle: React.FC<{ raffles: Raffle[] }> = ({ raffles }) => {
               className="bg-primary hover:bg-[#bd255f] shadow-xl shadow-black text-white py-2 px-4 mr-1 rounded-full flex items-center justify-center"
               disabled={false}
             />
-            <Button
-              text="Compartilhar Rifa"
-              icon={<FaShareSquare />}
-              onClick={() => handleShareRaffle(Number(raffle.id))}
-              className="bg-green-600 hover:bg-green-800 shadow-xl shadow-black text-white py-2 px-4 rounded-full flex items-center justify-center"
-              disabled={false}
-            />
+            {raffle.isActive ? (
+              <Button
+                text="Compartilhar Rifa"
+                icon={<FaShareSquare />}
+                onClick={() => handleShareRaffle(Number(raffle.id))}
+                className="bg-green-600 hover:bg-green-800 shadow-xl shadow-black text-white py-2 px-4 rounded-full flex items-center justify-center"
+                disabled={false}
+              />
+            ) : (
+              <Button
+                text={raffle.isWithdrawn ? "Saldo sacado" : "Sacar Prêmio"}
+                icon={<FaMoneyBill />}
+                onClick={() => handleWithdrawReward(Number(raffle.id))}
+                className={`${
+                  raffle.isWithdrawn
+                    ? "bg-slate-400"
+                    : "bg-green-600 hover:bg-green-800"
+                }  shadow-xl shadow-black text-white py-2 px-4 rounded-full flex items-center justify-center`}
+                disabled={raffle.isWithdrawn ? true : false}
+              />
+            )}
           </div>
 
           {/* Barra de progresso */}
-          {raffle.ticketsSold === 0 ? (
+          {!raffle.isActive ? null : raffle.ticketsSold === 0 ? (
             <span className="text-slate-500 text-sm mt-2 block text-center">
               Nenhum bilhete vendido
             </span>

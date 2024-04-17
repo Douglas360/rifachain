@@ -6,36 +6,51 @@ import Button from "../components/Button";
 import NoRaffle from "../components/NoRaffle";
 import CardRaffle from "../components/CardRaffle";
 import { getAllRaffles } from "../../Blockchain.services";
-import { getGlobalState } from "../../store";
-import { Raffle } from "../../types/Raffle";
+import { getGlobalState, setGlobalState, useGlobalState } from "../../store";
+
 import ShowRaffle from "../components/ShowRaffle";
 
 const Dashboard: React.FC = () => {
   const [raffleStatusFilter, setRaffleStatusFilter] = useState(1);
-  const [raffles, setRaffles] = useState<Raffle[]>([]);
+  const [account] = useGlobalState("connectedAccount");
+  const [raffles, setRaffles] = useGlobalState("raffles");
+  //const [loading, setLoading] = useState(true); // Estado de carregamento
+  const [loading] = useGlobalState("loading");
 
   useEffect(() => {
-    const account = getGlobalState("connectedAccount");
     const fetchData = async () => {
-      console.log("Fetching raflles");
-      const fetchedRaffles = await getAllRaffles();
-      setRaffles(fetchedRaffles as Raffle[]);
+      try {
+        setGlobalState("loading", { show: true, msg: "Carregando rifas..." }); // Ativar indicador de carregamento
+
+        if (account) {
+          console.log("Fetching raffles");
+          const fetchedRaffles = await getAllRaffles();
+          setRaffles(fetchedRaffles);
+        }
+      } catch (error) {
+        console.error("Error fetching raffles:", error);
+      } finally {
+        setGlobalState("loading", { show: false, msg: "" }); // Desativar indicador de carregamento
+      }
     };
-    if (account) {
-      //console.log("chamouuuu");
-      fetchData();
-    }
-  }, []);
 
-  const noRifas = 0;
+    fetchData();
+  }, [account]); // Executar sempre que a conta mudar
 
-  const filteredList = raffles?.filter((raffle) =>
-    raffleStatusFilter === 1
-      ? !raffle.isFinished
-      : raffleStatusFilter === 2
-      ? raffle.isFinished
+  const filteredList = raffles?.filter((raffle: { isActive: any }) =>
+    raffleStatusFilter === 2
+      ? !raffle.isActive
+      : raffleStatusFilter === 1
+      ? raffle.isActive
       : true
   );
+
+  if (filteredList) {
+    filteredList.sort(
+      (a: { id: number }, b: { id: number }) => Number(b.id) - Number(a.id)
+    ); // Ordenação ascendente por id
+    // Se quiser uma ordenação descendente, use: filteredList.sort((a, b) => Number(b.id) - Number(a.id));
+  }
   return (
     <Layout>
       <div className="flex flex-col mt-4 md:mt-0 md:ml-4 mx-auto w-4/5">
@@ -82,15 +97,16 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/*--RIFAS */}
-          {noRifas !== 0 ? (
+          {!loading ? null : raffles?.length === 0 ? (
             <NoRaffle onClick={() => {}} />
           ) : (
-            <CardRaffle raffles={filteredList} />
+            <CardRaffle raffles={filteredList} /> // Show raffles
           )}
         </div>
       </div>
 
       {/*--MODAL */}
+
       <ShowRaffle />
     </Layout>
   );

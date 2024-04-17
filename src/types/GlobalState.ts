@@ -6,6 +6,6 @@ export interface IGlobalState {
   alert: IAlertProps;
   loading: { show: boolean; msg: string };
   showModal: string;
-  raffle: any;
+  raffles: any;
   transactions: any[];
 }

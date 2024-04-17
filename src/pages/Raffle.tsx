@@ -2,19 +2,14 @@ import React, { useEffect, useState } from "react";
 
 import { Raffle } from "../types/Raffle";
 import { MdOpenInNew } from "react-icons/md";
-import { setAlert, setGlobalState, setLoadingMsg, truncate } from "../store";
+import { setAlert, setGlobalState, truncate } from "../store";
 import { MATIC_BLOCK_EXPLORER_URL_TESTNET } from "../constants";
 import Footer from "../components/Footer";
 import { useParams } from "react-router-dom";
-import {
-  buyTicket,
-  fetchRaflle,
-  connectWallet,
-  updateTransaction,
-} from "../Blockchain.services";
+import { buyTicket, fetchRaffle, connectWallet } from "../Blockchain.services";
 import { getGlobalState } from "../store";
 import Button from "../admin/components/Button";
-import { FaCheck, FaTicketAlt } from "react-icons/fa";
+import { FaTicketAlt } from "react-icons/fa";
 
 const RafflePage: React.FC = () => {
   const user = getGlobalState("connectedAccount");
@@ -26,7 +21,7 @@ const RafflePage: React.FC = () => {
   const [ticketBuy, setTicketBuy] = useState<number>(1);
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetchRaflle(Number(id));
+      const res = await fetchRaffle(Number(id));
       //console.log(res);
       if (res) {
         setRaffle(res);
@@ -69,14 +64,6 @@ const RafflePage: React.FC = () => {
     }
   };
 
-  const handleTeste = async () => {
-    const res = await updateTransaction(
-      11,
-      "0xc9e9d93a5c0681bc8e945704534c60975cabf84e46942e89f12ac6b88e1c2b93"
-    );
-    console.log(res);
-  };
-
   const handleRedirect = () => {
     window.location.href = "/dash board/meus-tickets";
   };
@@ -85,38 +72,12 @@ const RafflePage: React.FC = () => {
     const value = Number(ticketPrice) * ticketBuy;
 
     setGlobalState("loading", { show: true, msg: "Comprando bilhete." });
-    setLoadingMsg("Comprando bilhete...");
-    const transactionReceipt = await buyTicket(
-      Number(id),
-      ticketBuy,
-      value.toString()
-    );
-    console.log(transactionReceipt);
-    if (transactionReceipt && transactionReceipt.status) {
-      // Atualiza a transação no contrato
-      const id = Number(
-        transactionReceipt.events?.TransacaoCriada.returnValues.idTransacao
-      );
-      const tx = transactionReceipt.transactionHash;
-      setGlobalState("loading", {
-        show: true,
-        msg: `${(<FaCheck />)} Comprando bilhete. \n Atualizando blockchain...`,
-      });
-      await updateTransaction(id, tx);
+    await buyTicket(Number(id), ticketBuy, value.toString());
 
-      // Se a transação foi bem-sucedida (status = true), exibe mensagem de sucesso
-      setAlert("Bilhete comprado com sucesso!", "green");
+    // Se a transação foi bem-sucedida (status = true), exibe mensagem de sucesso
+    setAlert("Bilhete comprado com sucesso!", "green");
 
-      //window.location.reload();
-    } else {
-      // Se a transação falhou ou não foi confirmada, exibe mensagem de erro
-      setAlert(
-        "Falha ao comprar o bilhete. Tente novamente mais tarde.",
-        "red"
-      );
-    }
-
-    //TODO: check if buy return mined and execution succeed or failed
+    window.location.reload();
   };
 
   const handleConnectWallet = async () => {
@@ -230,27 +191,27 @@ const RafflePage: React.FC = () => {
             </small>
             {user ? (
               <Button
-                text={raffle?.isFinished ? "Rifa finalizada" : "Comprar"}
+                text={raffle?.isActive ? "Comprar" : "Rifa finalizada"}
                 onClick={handleBuyTicket}
                 className={`w-full p-2 mt-5 ${
-                  raffle?.isFinished ? "bg-slate-500" : "bg-primary"
+                  raffle?.isActive ? "bg-primary" : "bg-slate-500"
                 } text-white rounded-lg ${
-                  raffle?.isFinished ? "" : "hover:bg-[#bd255f]"
+                  raffle?.isActive ? "hover:bg-[#bd255f]" : ""
                 }`}
-                disabled={raffle?.isFinished}
+                disabled={!raffle?.isActive}
               />
             ) : (
               <Button
                 text={
-                  raffle?.isFinished ? "Rifa finalizada" : "Conectar Wallet"
+                  raffle?.isActive ? "Conectar Carteira" : "Rifa finalizada"
                 }
                 onClick={handleConnectWallet}
                 className={`w-full p-2 mt-5 ${
-                  raffle?.isFinished ? "bg-slate-500" : "bg-primary"
+                  raffle?.isActive ? "bg-primary" : "bg-slate-500"
                 } text-white rounded-lg ${
-                  raffle?.isFinished ? "" : "hover:bg-[#bd255f]"
+                  raffle?.isActive ? "hover:bg-[#bd255f]" : ""
                 }`}
-                disabled={raffle?.isFinished}
+                disabled={!raffle?.isActive}
               />
             )}
           </div>
@@ -266,7 +227,7 @@ const RafflePage: React.FC = () => {
         />
 
         {/*WINNER */}
-        {raffle?.isFinished && (
+        {!raffle?.isActive && (
           <div className="w-full mt-2 md:w-4/5 flex flex-col items-center justify-center mx-auto border border-primary rounded-lg shadow shadow-primary">
             <h4 className="text-white text-3xl font-bold uppercase text-gradient mt-2 animate-pulse">
               Vencedor
