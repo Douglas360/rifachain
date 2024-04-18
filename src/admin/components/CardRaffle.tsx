@@ -139,35 +139,56 @@ const CardRaffle: React.FC<{ raffles: Raffle[] }> = ({ raffles }) => {
               </div>
             </div>
           </div>
-          <div className="flex flex-row justify-end mt-4">
-            <Button
-              text="Ver Rifa"
-              icon={<FaTicketAlt />}
-              onClick={() => setRaflle(raffle)}
-              className="bg-primary hover:bg-[#bd255f] shadow-xl shadow-black text-white py-2 px-4 mr-1 rounded-full flex items-center justify-center"
-              disabled={false}
-            />
-            {raffle.isActive ? (
+
+          <div className="flex flex-row w-full justify-between ">
+            {/*TOTAL DO VALOR SACADO */}
+            {raffle.isWithdrawn ? (
+              <div className="flex flex-row justify-between mt-4">
+                <div className="flex flex-col">
+                  <span className="text-slate-500 text-sm mr-2">
+                    Valor sacado: {/*raffle.totalWithdrawn*/ "1eth"}
+                  </span>
+                  <span className="text-slate-500 text-sm">
+                    Data do saque {"01/01/2021"}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div></div>
+            )}
+
+            {/*---------------- */}
+
+            <div className="flex flex-row">
               <Button
-                text="Compartilhar Rifa"
-                icon={<FaShareSquare />}
-                onClick={() => handleShareRaffle(Number(raffle.id))}
-                className="bg-green-600 hover:bg-green-800 shadow-xl shadow-black text-white py-2 px-4 rounded-full flex items-center justify-center"
+                text="Ver Rifa"
+                icon={<FaTicketAlt />}
+                onClick={() => setRaflle(raffle)}
+                className="bg-primary hover:bg-[#bd255f] shadow-xl shadow-black text-white py-2 px-4 mr-1 rounded-full flex items-center justify-center"
                 disabled={false}
               />
-            ) : (
-              <Button
-                text={raffle.isWithdrawn ? "Saldo sacado" : "Sacar Prêmio"}
-                icon={<FaMoneyBill />}
-                onClick={() => handleWithdrawReward(Number(raffle.id))}
-                className={`${
-                  raffle.isWithdrawn
-                    ? "bg-slate-400"
-                    : "bg-green-600 hover:bg-green-800"
-                }  shadow-xl shadow-black text-white py-2 px-4 rounded-full flex items-center justify-center`}
-                disabled={raffle.isWithdrawn ? true : false}
-              />
-            )}
+              {raffle.isActive ? (
+                <Button
+                  text="Compartilhar Rifa"
+                  icon={<FaShareSquare />}
+                  onClick={() => handleShareRaffle(Number(raffle.id))}
+                  className="bg-green-600 hover:bg-green-800 shadow-xl shadow-black text-white py-2 px-4 rounded-full flex items-center justify-center"
+                  disabled={false}
+                />
+              ) : (
+                <Button
+                  text={raffle.isWithdrawn ? "Saldo sacado" : "Sacar Prêmio"}
+                  icon={<FaMoneyBill />}
+                  onClick={() => handleWithdrawReward(Number(raffle.id))}
+                  className={`${
+                    raffle.isWithdrawn
+                      ? "bg-slate-400"
+                      : "bg-green-600 hover:bg-green-800"
+                  }  shadow-xl shadow-black text-white py-2 px-4 rounded-full flex items-center justify-center`}
+                  disabled={raffle.isWithdrawn ? true : false}
+                />
+              )}
+            </div>
           </div>
 
           {/* Barra de progresso */}

@@ -65,7 +65,7 @@ const RafflePage: React.FC = () => {
   };
 
   const handleRedirect = () => {
-    window.location.href = "/dash board/meus-tickets";
+    window.location.href = "/dashboard/meus-tickets";
   };
 
   const handleBuyTicket = async () => {
@@ -219,12 +219,14 @@ const RafflePage: React.FC = () => {
 
         {/* FLOATING BUTTON */}
 
-        <Button
-          text="Ver meus tickets"
-          icon={<FaTicketAlt className="text-lg" />}
-          onClick={handleRedirect}
-          className="flex flex-row fixed bottom-10 right-5 bg-primary text-white py-3 px-6 rounded-lg shadow-lg hover:bg-[#bd255f] focus:outline-none"
-        />
+        {user && (
+          <Button
+            text="Ver meus tickets"
+            icon={<FaTicketAlt className="text-lg" />}
+            onClick={handleRedirect}
+            className="flex flex-row fixed bottom-10 right-5 bg-primary text-white py-3 px-6 rounded-lg shadow-lg hover:bg-[#bd255f] focus:outline-none"
+          />
+        )}
 
         {/*WINNER */}
         {!raffle?.isActive && (

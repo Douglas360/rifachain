@@ -13,7 +13,7 @@ const NoRaffle: FC<NoRaffleProps> = ({ onClick }) => {
       <p className="text-center text-slate-700 text-xl">
         Nenhuma rifa encontrada
       </p>
-      <a href="/dashboard/minhas-rifas">
+      <a href="/dashboard/rifa">
         <Button
           text="Criar Rifa"
           icon={<FaTicketAlt />}

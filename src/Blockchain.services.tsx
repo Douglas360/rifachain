@@ -1,6 +1,6 @@
 import Web3 from "web3";
 import { formatDistanceToNow } from "date-fns";
-import abi from "./abis/contracts/Raffle/RaffleV2.json";
+import abi from "./abis/contracts/Raffle.sol/RaffleV2.json";
 
 import {
   CONTRACT_ADDRESS,
@@ -26,7 +26,6 @@ const initializeConnectedAccount = () => {
     setGlobalState("connectedAccount", connectedAccount);
   }
 };
-
 const connectWallet = async () => {
   try {
     if (!ethereum) return reportError("Instalar Metamask.");
@@ -60,7 +59,6 @@ const connectWallet = async () => {
     console.log(error);
   }
 };
-
 const isWalletConnected = async () => {
   try {
     const accounts = await ethereum.request({ method: "eth_accounts" });
@@ -88,7 +86,6 @@ const isWalletConnected = async () => {
     console.log(error);
   }
 };
-
 const getContract = async () => {
   const web3 = new Web3(ethereum);
   const networkData = CONTRACT_ADDRESS;
@@ -100,7 +97,6 @@ const getContract = async () => {
     return null;
   }
 };
-
 const createRaffle = async ({
   title,
   metadataURI,
@@ -124,7 +120,6 @@ const createRaffle = async ({
     reportError("Erro ao criar rifa.");
   }
 };
-
 const getAllRaffles = async () => {
   try {
     const contract = await getContract();
@@ -165,7 +160,6 @@ const getAllRaffles = async () => {
     reportError("Erro ao listar rifas.");
   }
 };
-
 const fetchRaffle = async (id: number) => {
   try {
     const contract = await getContract();
@@ -235,7 +229,6 @@ const fetchRaffle = async (id: number) => {
     reportError("Erro ao buscar rifa.");
   }
 };
-
 const buyTicket = async (
   raffleId: number,
   ticketCount: number,
@@ -273,7 +266,6 @@ const updateTransaction = async (id: number, tx: string) => {
 const reportError = (error: string) => {
   setAlert(JSON.stringify(error), "red");
 };
-
 const withdrawReward = async (raffleId: number) => {
   try {
     const contract = await getContract();
@@ -288,6 +280,61 @@ const withdrawReward = async (raffleId: number) => {
     reportError("Erro ao retirar prêmio.");
   }
 };
+const getRaffleUser = async (address: string) => {
+  const contract = await getContract();
+  if (!contract) return reportError("Contrato não encontrado.");
+
+  const raffle = await contract.methods.getParticipantTickets(address).call();
+
+  const structedRaffles = (raffle as any[]).map((raffle: any) => {
+    return {
+      ticketNumber: Number(raffle.ticketNumber),
+      raffleId: Number(raffle.raffleId),
+      boughtIn: formatDistanceToNow(
+        new Date(parseInt(raffle.createdAt, 10) * 1000),
+        { addSuffix: true }
+      ),
+      raffleTitle: raffle.raffleinfo["name"],
+      raffleStatus: raffle.raffleinfo["isActive"],
+      raffleReward: Web3.utils.fromWei(
+        raffle.raffleinfo["totalAmountToWin"],
+        "ether"
+      ),
+      raffleImage: raffle.raffleinfo["image"],
+      winner: raffle.raffleinfo["winner"],
+    };
+  });
+
+  const groupedByRaffleId = groupTicketNumbersByRaffleId(structedRaffles);
+  //console.log(groupedByRaffleId);
+  return groupedByRaffleId;
+};
+
+const groupTicketNumbersByRaffleId = (raffles: any[]) => {
+  const groupedByRaffleId: any = [];
+  raffles.forEach((raffle) => {
+    if (!groupedByRaffleId[raffle.raffleId]) {
+      groupedByRaffleId[raffle.raffleId] = {
+        raffleId: raffle.raffleId,
+        tickets: [],
+        raffleInfo: {
+          title: raffle.raffleTitle,
+          status: raffle.raffleStatus,
+          reward: raffle.raffleReward,
+          image: raffle.raffleImage,
+          winner: raffle.winner,
+        },
+      };
+    }
+    //Push ticket number and bought in date to the raffle
+    groupedByRaffleId[raffle.raffleId].tickets.push({
+      ticketNumber: raffle.ticketNumber,
+      boughtIn: raffle.boughtIn,
+    });
+  });
+  //console.log(groupedByRaffleId);
+  return groupedByRaffleId;
+};
 
 export {
   initializeConnectedAccount,
@@ -299,4 +346,5 @@ export {
   buyTicket,
   updateTransaction,
   withdrawReward,
+  getRaffleUser,
 };
