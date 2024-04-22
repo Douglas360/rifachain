@@ -9,8 +9,6 @@ const Ticket: React.FC = () => {
   const [account] = useGlobalState("connectedAccount");
   const [tickets, setTickets] = useState([]);
 
-  const myAccount = account;
-
   useEffect(() => {
     const fetchData = async () => {
       try {

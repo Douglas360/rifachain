@@ -1,15 +1,15 @@
 import React, { ChangeEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
-//import axios from "axios";
+import { FaTicketAlt } from "react-icons/fa";
+import axios from "axios";
 
 import Layout from "../layout";
-import { FaTicketAlt } from "react-icons/fa";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import { createRaffle } from "../../Blockchain.services";
-import { setAlert, setGlobalState, setLoadingMsg } from "../../store";
+import { setAlert, setGlobalState } from "../../store";
 import { Raffle } from "../../types/Raffle";
-import axios from "axios";
+import blochchainImage from "../../assets/blockchain.png";
 
 const pinataJWT =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzZjAzZDllMi04ZGQ2LTQyMjEtYTc1ZS02ZjI0NjkzYTI3ZTQiLCJlbWFpbCI6ImRvdWdsYXNfaGVucmlxdWVkdWFydGVAaG90bWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJpZCI6IkZSQTEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX0seyJpZCI6Ik5ZQzEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiZmEyZDYxZDRkYjlhNzJmMTY2ODUiLCJzY29wZWRLZXlTZWNyZXQiOiJmZjAxYWY3NjliNmRhZGJiZjhmYTQ3OGY1MjA0NmNlYjBmYzk1MzM4MjI1MTg0MWVhZGIzNGZiMGYzMWVjN2JjIiwiaWF0IjoxNzA2MTI0NTAwfQ.V_8v4FUVhSF4NdrWk_fr7H7ApIqm1kYCtaSHbjeLK4k";
@@ -125,11 +125,7 @@ const Ruffle: React.FC = () => {
                 <img
                   alt="Reward"
                   className="h-full w-full object-cover cursor-pointer"
-                  src={
-                    imgBase64
-                      ? imgBase64.toString()
-                      : "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1361&q=80"
-                  }
+                  src={imgBase64 ? imgBase64.toString() : blochchainImage}
                 />
               </div>
             </div>
