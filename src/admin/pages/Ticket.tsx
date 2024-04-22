@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../layout";
-import { getRaffleUser } from "../../Blockchain.services";
+import { getRaffleUser } from "../../context/Blockchain.services";
 import { setGlobalState, useGlobalState } from "../../store";
 import { FaCheckCircle, FaClock } from "react-icons/fa";
 

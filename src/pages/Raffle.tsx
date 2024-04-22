@@ -1,28 +1,34 @@
 import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { FaTicketAlt } from "react-icons/fa";
 
 import { Raffle } from "../types/Raffle";
 import { MdOpenInNew } from "react-icons/md";
 import { setAlert, setGlobalState, truncate } from "../store";
 import { MATIC_BLOCK_EXPLORER_URL_TESTNET } from "../constants";
 import Footer from "../components/Footer";
-import { useParams } from "react-router-dom";
-import { buyTicket, fetchRaffle, connectWallet } from "../Blockchain.services";
+import {
+  buyTicket,
+  fetchRaffle,
+  connectWallet,
+} from "../context/Blockchain.services";
+import { createTransaction } from "../context/Api.service";
 import { getGlobalState } from "../store";
 import Button from "../admin/components/Button";
-import { FaTicketAlt } from "react-icons/fa";
+import { Transaction } from "../types/Transaction";
 
 const RafflePage: React.FC = () => {
   const user = getGlobalState("connectedAccount");
-  //GET ID FROM URL PARAMS AND FETCH RAFFLE DATA FROM API USING ID
+
   const { slug } = useParams<{ slug: string }>();
-  //const id = decodeId(slug ?? "");
+
   const id = slug;
   const [raffle, setRaffle] = useState<Raffle>();
   const [ticketBuy, setTicketBuy] = useState<number>(1);
   useEffect(() => {
     const fetchData = async () => {
       const res = await fetchRaffle(Number(id));
-      //console.log(res);
+
       if (res) {
         setRaffle(res);
       }
@@ -32,7 +38,7 @@ const RafflePage: React.FC = () => {
   }, [id]);
 
   const transactionHash = getGlobalState("transactions");
-  //  console.log(transactionHash[0].timeStamp.toString());
+
   const {
     title,
     metadataURI,
@@ -72,12 +78,20 @@ const RafflePage: React.FC = () => {
     const value = Number(ticketPrice) * ticketBuy;
 
     setGlobalState("loading", { show: true, msg: "Comprando bilhete." });
-    await buyTicket(Number(id), ticketBuy, value.toString());
-
+    const res = await buyTicket(Number(id), ticketBuy, value.toString());
+    //console.log(res?.transactionHash, res?.timestamp);
+    await createTransaction({
+      sender: user,
+      tx: res?.transactionHash.toString() || "",
+      amount: value.toString(),
+      date: new Date().toISOString(),
+      raffleId: Number(id),
+      typeTransaction: "buy",
+    });
     // Se a transação foi bem-sucedida (status = true), exibe mensagem de sucesso
     setAlert("Bilhete comprado com sucesso!", "green");
 
-    window.location.reload();
+    //window.location.reload();
   };
 
   const handleConnectWallet = async () => {
@@ -281,7 +295,7 @@ const RafflePage: React.FC = () => {
         {/*LATESTS TRANSACTIONS */}
         <div className="w-full mt-2 md:w-4/5 flex flex-col items-center justify-center mx-auto border border-primary rounded-lg shadow shadow-primary">
           <h4 className="text-white text-3xl font-bold uppercase text-gradient mt-2">
-            {transactionHash.length !== 0
+            {transactionHash?.length !== 0
               ? "Últimas transações"
               : "Sem transações disponíveis"}
           </h4>
@@ -290,16 +304,16 @@ const RafflePage: React.FC = () => {
             <div className="flex justify-between  w-full text-slate-300 text-sm">
               <p className="hidden md:block">Usuário</p>
               <p>Transação</p>
-              <p className="hidden md:block">Custo</p>
+              <p className="hidden md:block">Valor</p>
               <p>Tempo</p>
             </div>
-            {transactionHash?.map((tx: any) => (
-              <div key={tx.id}>
+            {transactionHash?.map((tx: Transaction) => (
+              <div key={tx._id}>
                 <div className="flex justify-between w-full  md:overflow-hidden p-2 text-slate-300">
                   {/*user */}
                   <small className="hidden md:block">
                     <span className="flex flex-row justify-start items-center text-pink-500 ">
-                      {truncate(tx.user, 4, 4, 11)}
+                      {truncate(tx.sender, 4, 4, 11)}
                     </span>
                   </small>
 
@@ -322,14 +336,12 @@ const RafflePage: React.FC = () => {
 
                   {/*cost */}
                   <small className="hidden md:block">
-                    <span className="text-pink-500">{tx.cost} ETH</span>
+                    <span className="text-pink-500">{tx.amount} ETH</span>
                   </small>
 
                   {/*time */}
                   <small>
-                    <span className="text-pink-500">
-                      {tx.timeStamp.toString()}
-                    </span>
+                    <span className="text-pink-500">{tx.date.toString()}</span>
                   </small>
                 </div>
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { connectWallet } from "../Blockchain.services";
+import { connectWallet } from "../context/Blockchain.services";
 import { useGlobalState } from "../store";
 
 import imageHero from "../assets/hero.webp";

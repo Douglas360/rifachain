@@ -6,7 +6,7 @@ import axios from "axios";
 import Layout from "../layout";
 import Input from "../components/Input";
 import Button from "../components/Button";
-import { createRaffle } from "../../Blockchain.services";
+import { createRaffle } from "../../context/Blockchain.services";
 import { setAlert, setGlobalState } from "../../store";
 import { Raffle } from "../../types/Raffle";
 import blochchainImage from "../../assets/blockchain.png";

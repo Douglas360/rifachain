@@ -9,14 +9,15 @@ import {
 } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 
+import { getGlobalState } from "../../store";
+
 const SideBar: React.FC = () => {
+  const user = getGlobalState("user");
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleMenuItemClick = (section: string) => {
-    // Redirecionar para a seção correspondente do menu
     navigate(section);
-    console.log(location.pathname);
   };
 
   interface MenuItem {
@@ -41,13 +42,13 @@ const SideBar: React.FC = () => {
         <div className="flex flex-col items-center">
           <img
             className="w-40 h-40 rounded-full mt-3"
-            src="https://randomuser.me/api/portraits/men/13.jpg"
+            src={user?.avatar}
             alt="Profile"
           />
           <h2 className="mt-4 text-white text-1xl md:2xl font-bold uppercase">
-            Walber Balbueno
+            {user?.name}
           </h2>
-          <p className="text-1xl text-blue-400">ID: 986426</p>
+          <p className="text-1xl text-blue-400">ID: {user?._id?.slice(5)}</p>
         </div>
       </div>
 

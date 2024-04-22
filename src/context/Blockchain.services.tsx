@@ -1,6 +1,6 @@
 import Web3 from "web3";
 import { formatDistanceToNow } from "date-fns";
-import abi from "./abis/contracts/Raffle.sol/RaffleV2.json";
+import abi from "../abis/contracts/Raffle.sol/RaffleV2.json";
 
 import {
   CONTRACT_ADDRESS,
@@ -8,9 +8,10 @@ import {
   MATIC_CHAIN_ID_TESTNET,
   MATIC_CHAIN_NAME_TESTNET,
   MATIC_RPC_URL_TESTNET,
-} from "./constants";
-import { setGlobalState, setAlert, getGlobalState } from "./store";
-import { Raffle } from "./types/Raffle";
+} from "../constants";
+import { setGlobalState, setAlert, getGlobalState } from "../store";
+import { Raffle } from "../types/Raffle";
+import { createUser, getTransactions, getUser } from "./Api.service";
 
 declare global {
   interface Window {
@@ -50,6 +51,14 @@ const connectWallet = async () => {
         ],
       });
     }
+    const user = await createUser({
+      wallet: accounts[0].toLowerCase(),
+      name: "User-?",
+      avatar:
+        "https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    });
+    //console.log(user);
+    setGlobalState("user", user);
     const raffle = await getAllRaffles();
     setGlobalState("raffles", raffle);
     setGlobalState("connectedChain", ethereum.chainId);
@@ -62,6 +71,7 @@ const connectWallet = async () => {
 const isWalletConnected = async () => {
   try {
     const accounts = await ethereum.request({ method: "eth_accounts" });
+    console.log("Sempre cai aqui ?" + accounts);
 
     ethereum.on("chainChanged", (chainId: string) => {
       window.location.reload();
@@ -78,6 +88,9 @@ const isWalletConnected = async () => {
     if (accounts.length) {
       setGlobalState("connectedAccount", accounts[0]?.toLowerCase());
       localStorage.setItem("connectedAccount", accounts[0]?.toLowerCase());
+
+      const user = await getUser(accounts[0]?.toLowerCase());
+      setGlobalState("user", user);
     } else {
       setGlobalState("connectedAccount", "");
       localStorage.removeItem("connectedAccount");
@@ -126,6 +139,12 @@ const getAllRaffles = async () => {
     if (!contract) return reportError("Contrato não encontrado.");
     const account = getGlobalState("connectedAccount");
 
+    const user = await getUser(account);
+    if (!user) return reportError("Usuário não encontrado.");
+
+    setGlobalState("user", user);
+    console.log(user);
+
     //const raffle = await contract.methods.listarRifas(account).call();
     const raffle = await contract.methods.getRaflle(account).call();
 
@@ -162,6 +181,7 @@ const getAllRaffles = async () => {
 };
 const fetchRaffle = async (id: number) => {
   try {
+    await getTransactions(id);
     const contract = await getContract();
     if (!contract) return reportError("Contrato não encontrado.");
 
@@ -175,37 +195,9 @@ const fetchRaffle = async (id: number) => {
       isActive: boolean;
       winner: string;
     };
-    //console.log(raffle);
-
-    /*const transactions = (await contract.methods.listarTransacoes().call()) as {
-      id: number;
-      from: string;
-      value: string;
-      tx: string;
-      quantidadeBilhete: string;
-      timestamp: string;
-    }[];
-    //console.log(transactions);
-    const structedTransactions = transactions.map((transaction) => {
-      return {
-        id: Number(transaction.id),
-        user: transaction.from,
-        cost: Web3.utils.fromWei(transaction.value, "ether"),
-        tx: transaction.tx,
-        timeStamp: formatDistanceToNow(
-          new Date(parseInt(transaction.timestamp, 10) * 1000),
-          { addSuffix: true } // Adiciona sufixos como "ago" ou "from now"
-        ),
-      };
-    });
-
-    //Order by id desc to show the last transactions first
-    structedTransactions.sort((a, b) => b.id - a.id);
-    setGlobalState("transactions", structedTransactions);*/
 
     const totalTickets = Number(raffle.ticketCount);
     const ticketsSold = Number(raffle.ticketSold);
-    //const ticletsAvailable = totalTickets - ticketsSold;
 
     const progressWidth =
       totalTickets !== 0 ? (ticketsSold / totalTickets) * 100 : 0;

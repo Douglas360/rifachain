@@ -5,7 +5,7 @@ import Layout from "../layout";
 import Button from "../components/Button";
 import NoRaffle from "../components/NoRaffle";
 import CardRaffle from "../components/CardRaffle";
-import { getAllRaffles } from "../../Blockchain.services";
+import { getAllRaffles } from "../../context/Blockchain.services";
 import { getGlobalState, setGlobalState, useGlobalState } from "../../store";
 
 import ShowRaffle from "../components/ShowRaffle";

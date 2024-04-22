@@ -1,6 +1,6 @@
 import logo from "../../assets/logo.png";
 import { truncateAddress, useGlobalState } from "../../store";
-import { connectWallet } from "../../Blockchain.services";
+import { connectWallet } from "../../context/Blockchain.services";
 import { MATIC_CHAIN_ID_TESTNET } from "../../constants";
 import { useNavigate } from "react-router-dom";
 

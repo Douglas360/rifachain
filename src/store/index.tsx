@@ -1,10 +1,12 @@
 import { createGlobalState } from "react-hooks-global-state";
 import { IGlobalState } from "../types/GlobalState";
+import { User } from "../types/User";
 
 const { setGlobalState, useGlobalState, getGlobalState } =
   createGlobalState<IGlobalState>({
     connectedAccount: "",
     connectedChain: "",
+    user: {} as User,
     alert: { show: false, msg: "", color: "" },
     loading: { show: false, msg: "" },
     showModal: "scale-0",

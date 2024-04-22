@@ -9,7 +9,7 @@ import {
   FaTicketAlt,
 } from "react-icons/fa";
 import { setGlobalState } from "../../store";
-import { withdrawReward } from "../../Blockchain.services";
+import { withdrawReward } from "../../context/Blockchain.services";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 //import { encodeId } from "../../functions/encodeId";
