@@ -10,12 +10,7 @@ import { createRaffle } from "../../context/Blockchain.services";
 import { setAlert, setGlobalState } from "../../store";
 import { Raffle } from "../../types/Raffle";
 import blochchainImage from "../../assets/blockchain.png";
-
-const pinataJWT =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzZjAzZDllMi04ZGQ2LTQyMjEtYTc1ZS02ZjI0NjkzYTI3ZTQiLCJlbWFpbCI6ImRvdWdsYXNfaGVucmlxdWVkdWFydGVAaG90bWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJpZCI6IkZSQTEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX0seyJpZCI6Ik5ZQzEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiZmEyZDYxZDRkYjlhNzJmMTY2ODUiLCJzY29wZWRLZXlTZWNyZXQiOiJmZjAxYWY3NjliNmRhZGJiZjhmYTQ3OGY1MjA0NmNlYjBmYzk1MzM4MjI1MTg0MWVhZGIzNGZiMGYzMWVjN2JjIiwiaWF0IjoxNzA2MTI0NTAwfQ.V_8v4FUVhSF4NdrWk_fr7H7ApIqm1kYCtaSHbjeLK4k";
-const pinataBaseURL = "https://api.pinata.cloud/";
-const pinataEndpoint = "pinning/pinFileToIPFS";
-const auth = `Bearer ${pinataJWT}`;
+import { auth, pinataBaseURL, pinataEndpoint } from "../../constants";
 
 const Ruffle: React.FC = () => {
   const navigate = useNavigate();

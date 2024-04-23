@@ -12,6 +12,7 @@ import {
   fetchRaffle,
   connectWallet,
 } from "../context/Blockchain.services";
+import { createTransactionWinner } from "../context/Api.service";
 import { createTransaction } from "../context/Api.service";
 import { getGlobalState } from "../store";
 import Button from "../admin/components/Button";
@@ -79,14 +80,33 @@ const RafflePage: React.FC = () => {
 
     setGlobalState("loading", { show: true, msg: "Comprando bilhete." });
     const res = await buyTicket(Number(id), ticketBuy, value.toString());
-    //console.log(res?.transactionHash, res?.timestamp);
+    console.log(res);
+    const isWinner = res?.events?.RaffleWinner.returnValues;
+
+    if (isWinner) {
+      const res = await createTransactionWinner(
+        Number(id),
+        isWinner?.winner?.toString() || "",
+        Number(isWinner?.numberSelected)
+      );
+      await createTransaction({
+        sender: user,
+        tx: res?.transactionHash.toString() || "",
+        amount: value.toString(),
+        date: new Date().toISOString(),
+        raffleId: Number(id),
+        typeTransaction: "winner",
+      });
+      console.log(res);
+    }
+
     await createTransaction({
       sender: user,
       tx: res?.transactionHash.toString() || "",
       amount: value.toString(),
       date: new Date().toISOString(),
       raffleId: Number(id),
-      typeTransaction: "buy",
+      typeTransaction: "buyTicket",
     });
     // Se a transação foi bem-sucedida (status = true), exibe mensagem de sucesso
     setAlert("Bilhete comprado com sucesso!", "green");
@@ -173,11 +193,6 @@ const RafflePage: React.FC = () => {
             )}
 
             <h1 className="text-3xl text-white md:mt-3">Comprar ticket</h1>
-            {/*<input
-              type="number"
-              className="w-full p-2 mt-5 rounded-lg"
-              placeholder="Quantidade de tickets"
-          />*/}
             <div>
               <div className="flex flex-row justify-between items-center mt-5">
                 <button
@@ -251,7 +266,7 @@ const RafflePage: React.FC = () => {
             <div className="w-4/5 py-2.5">
               {/*FIRST LINE */}
               <div className="flex justify-between w-full text-slate-300 text-sm">
-                <p>Endereço</p>
+                <p>Endereço do vencedor</p>
                 <p>Prêmio</p>
                 <p>Hash da transação</p>
               </div>
@@ -272,16 +287,16 @@ const RafflePage: React.FC = () => {
                   <span className="flex flex-row ">
                     <a
                       href={`${MATIC_BLOCK_EXPLORER_URL_TESTNET}tx/${
-                        raffle?.winner ?? ""
+                        transactionHash[0]?.tx ?? ""
                       }`}
                       className="text-pink-500 mr-2"
                     >
-                      {(raffle?.winner ?? "").slice(0, 10)}...
-                      {(raffle?.winner ?? "").slice(-10)}
+                      {(transactionHash[0]?.tx ?? "").slice(0, 10)}...
+                      {(transactionHash[0]?.tx ?? "").slice(-10)}
                     </a>
                     <a
                       href={`${MATIC_BLOCK_EXPLORER_URL_TESTNET}tx/${
-                        raffle?.winner ?? ""
+                        transactionHash[0]?.tx ?? ""
                       }`}
                     >
                       <MdOpenInNew />
@@ -308,12 +323,12 @@ const RafflePage: React.FC = () => {
               <p>Tempo</p>
             </div>
             {transactionHash?.map((tx: Transaction) => (
-              <div key={tx._id}>
+              <div key={tx?._id}>
                 <div className="flex justify-between w-full  md:overflow-hidden p-2 text-slate-300">
                   {/*user */}
                   <small className="hidden md:block">
                     <span className="flex flex-row justify-start items-center text-pink-500 ">
-                      {truncate(tx.sender, 4, 4, 11)}
+                      {truncate(tx?.sender, 4, 4, 11)}
                     </span>
                   </small>
 
@@ -321,10 +336,10 @@ const RafflePage: React.FC = () => {
                   <small>
                     <span className="flex flex-row ">
                       <a
-                        href={`${MATIC_BLOCK_EXPLORER_URL_TESTNET}tx/${tx.tx}`}
+                        href={`${MATIC_BLOCK_EXPLORER_URL_TESTNET}tx/${tx?.tx}`}
                         className="text-pink-500 mr-2"
                       >
-                        {tx.tx.slice(0, 10)}...{tx.tx.slice(-10)}
+                        {tx?.tx.slice(0, 10)}...{tx.tx.slice(-10)}
                       </a>
                       <a
                         href={`${MATIC_BLOCK_EXPLORER_URL_TESTNET}tx/${tx.tx}`}
@@ -336,12 +351,12 @@ const RafflePage: React.FC = () => {
 
                   {/*cost */}
                   <small className="hidden md:block">
-                    <span className="text-pink-500">{tx.amount} ETH</span>
+                    <span className="text-pink-500">{tx?.amount} ETH</span>
                   </small>
 
                   {/*time */}
                   <small>
-                    <span className="text-pink-500">{tx.date.toString()}</span>
+                    <span className="text-pink-500">{tx?.date.toString()}</span>
                   </small>
                 </div>
 

@@ -6,7 +6,7 @@ import Button from "../components/Button";
 import NoRaffle from "../components/NoRaffle";
 import CardRaffle from "../components/CardRaffle";
 import { getAllRaffles } from "../../context/Blockchain.services";
-import { getGlobalState, setGlobalState, useGlobalState } from "../../store";
+import { setGlobalState, useGlobalState } from "../../store";
 
 import ShowRaffle from "../components/ShowRaffle";
 
@@ -14,8 +14,8 @@ const Dashboard: React.FC = () => {
   const [raffleStatusFilter, setRaffleStatusFilter] = useState(1);
   const [account] = useGlobalState("connectedAccount");
   const [raffles, setRaffles] = useGlobalState("raffles");
-  //const [loading, setLoading] = useState(true); // Estado de carregamento
   const [loading] = useGlobalState("loading");
+  const [user] = useGlobalState("user");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,7 +58,7 @@ const Dashboard: React.FC = () => {
         <div>
           <h1>
             Olá,
-            <span className="font-bold">WALBER BALBUENO</span>
+            <span className="font-bold">{user?.name}</span>
           </h1>
         </div>
 
