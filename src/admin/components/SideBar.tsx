@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useState } from "react";
+import React, { ChangeEvent, useEffect, useState, useCallback, useMemo } from "react";
 import {
   FaCog,
   FaCreditCard,
@@ -19,54 +19,50 @@ import { User } from "../../types/User";
 const SideBar: React.FC = () => {
   const [imgBase64, setImgBase64] = useState<string | ArrayBuffer | null>(null);
   const [isEditingName, setIsEditingName] = useState(false);
-  const [newName, setNewName] = useState<string | undefined>(undefined); // Estado local para o novo nome
+  const [newName, setNewName] = useState<string | undefined>(undefined);
   const user = getGlobalState("user");
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Memoizar o handler do escape key
+  const handleEscapeKey = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setIsEditingName(false);
+      setNewName(undefined);
+    }
+  }, []);
+
   useEffect(() => {
-    const handleEscapeKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        // Se pressionar "Esc", cancelar a edição do nome
-        setIsEditingName(false);
-        setNewName(undefined); // Limpar o estado local
-      }
-    };
-
-    // Adicionar o event listener quando o componente montar
     document.addEventListener("keydown", handleEscapeKey);
-
-    // Remover o event listener quando o componente desmontar
     return () => {
       document.removeEventListener("keydown", handleEscapeKey);
     };
-  }, []); // Executar este efeito apenas uma vez no montar do componente
+  }, [handleEscapeKey]);
 
-  const handleMenuItemClick = (section: string) => {
+  // Memoizar handlers para evitar recriação
+  const handleMenuItemClick = useCallback((section: string) => {
     navigate(section);
-  };
+  }, [navigate]);
 
-  const handleNameClick = () => {
+  const handleNameClick = useCallback(() => {
     setIsEditingName(true);
-    setNewName(user?.name); // Inicializa o estado local com o nome atual do usuário
-  };
+    setNewName(user?.name);
+  }, [user?.name]);
 
-  const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setNewName(e.target.value); // Atualiza o estado local enquanto o usuário digita
-  };
+  const handleNameChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setNewName(e.target.value);
+  }, []);
 
-  const handleNameBlur = async () => {
-    // Ao perder o foco do input, cancelar a edição do nome
+  const handleNameBlur = useCallback(async () => {
     setIsEditingName(false);
-    setNewName(undefined); // Limpar o estado local
-  };
+    setNewName(undefined);
+  }, []);
 
-  const handleNameKeyDown = async (
+  const handleNameKeyDown = useCallback(async (
     e: React.KeyboardEvent<HTMLInputElement>
   ) => {
     if (e.key === "Enter") {
-      // Se pressionar "Enter", atualizar o nome
-      e.preventDefault(); // Evitar comportamento padrão de submit
+      e.preventDefault();
       if (newName && newName.trim() !== "") {
         try {
           setGlobalState("loading", { show: true, msg: "Atualizando nome..." });
@@ -74,17 +70,17 @@ const SideBar: React.FC = () => {
             name: newName,
             avatar: user?.avatar,
           } as User);
-          setGlobalState("user", { ...user, name: newName }); // Atualiza o nome no estado global
+          setGlobalState("user", { ...user, name: newName });
           setAlert("Nome atualizado!", "green");
         } catch (error: any) {
           setAlert("Erro ao atualizar o nome", "red");
         }
       }
-      setIsEditingName(false); // Desabilita o modo de edição, independentemente do resultado da atualização
+      setIsEditingName(false);
     }
-  };
+  }, [newName, user]);
 
-  const changeImage = async (e: ChangeEvent<HTMLInputElement>) => {
+  const changeImage = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
 
     if (files && files.length > 0) {
@@ -105,7 +101,6 @@ const SideBar: React.FC = () => {
       };
       try {
         setGlobalState("loading", { show: true, msg: "Atualizando imagem..." });
-        // Upload da imagem para Pinata
         const formData = new FormData();
         formData.append("file", file);
 
@@ -123,7 +118,6 @@ const SideBar: React.FC = () => {
 
         const metadataURI = `https://black-tropical-parakeet-136.mypinata.cloud/ipfs/${res.data.IpfsHash}`;
 
-        // Atualiza a imagem do usuário
         await updateUser(user?.wallet, {
           name: user?.name,
           avatar: metadataURI,
@@ -134,22 +128,22 @@ const SideBar: React.FC = () => {
         setAlert("Erro ao atualizar a imagem", "red");
       }
     }
-  };
+  }, [user]);
 
-  interface MenuItem {
-    name: string;
-    to: string;
-    icon: React.ReactNode;
-  }
-
-  const menuItems: MenuItem[] = [
+  // Memoizar o array de menu items para evitar recriação
+  const menuItems = useMemo(() => [
     { name: "Dashboard", to: "/dashboard", icon: <FaTachometerAlt /> },
     { name: "Criar Rifa", to: "/dashboard/rifa", icon: <FaTicketAlt /> },
     { name: "Meus tickets", to: "/dashboard/meus-tickets", icon: <FaWallet /> },
     { name: "Transações", to: "/dashboard/transacoes", icon: <FaCreditCard /> },
     { name: "Suporte", to: "/suporte", icon: <FaHeadset /> },
     { name: "Configuração", to: "/dashboard/configuracao", icon: <FaCog /> },
-  ];
+  ], []);
+
+  // Memoizar handlers para os cliques nos ícones
+  const handleFileInputClick = useCallback(() => {
+    document.getElementById("fileInput")?.click();
+  }, []);
 
   return (
     <div>
@@ -168,10 +162,10 @@ const SideBar: React.FC = () => {
               className="w-40 h-40 rounded-full mt-3 cursor-pointer"
               src={imgBase64 ? imgBase64.toString() : user?.avatar}
               alt="Profile"
-              onClick={() => document.getElementById("fileInput")?.click()}
+              onClick={handleFileInputClick}
             />
             <FaPenSquare
-              onClick={() => document.getElementById("fileInput")?.click()}
+              onClick={handleFileInputClick}
               className="text-2xl text-white cursor-pointer absolute top-1/1 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
             />
           </div>
